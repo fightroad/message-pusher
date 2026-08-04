@@ -1,34 +1,39 @@
 package model
 
 import (
+	"errors"
+	"message-pusher/common"
+	"os"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"message-pusher/common"
-	"os"
 )
 
 var DB *gorm.DB
 
 func createRootAccountIfNeed() error {
 	var user User
-	//if user.Status != common.UserStatusEnabled {
-	if err := DB.First(&user).Error; err != nil {
-		common.SysLog("no user exists, create a root user for you: username is root, password is 123456")
-		hashedPassword, err := common.Password2Hash("123456")
-		if err != nil {
-			return err
-		}
-		rootUser := User{
-			Username:    "root",
-			Password:    hashedPassword,
-			Role:        common.RoleRootUser,
-			Status:      common.UserStatusEnabled,
-			DisplayName: "超级管理员",
-		}
-		DB.Create(&rootUser)
+	err := DB.First(&user).Error
+	if err == nil {
+		return nil
 	}
-	return nil
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	common.SysLog("no user exists, create a root user for you: username is root, password is 123456")
+	hashedPassword, err := common.Password2Hash("123456")
+	if err != nil {
+		return err
+	}
+	rootUser := User{
+		Username:    "root",
+		Password:    hashedPassword,
+		Role:        common.RoleRootUser,
+		Status:      common.UserStatusEnabled,
+		DisplayName: "超级管理员",
+	}
+	return DB.Create(&rootUser).Error
 }
 
 func CountTable(tableName string) (num int64) {
@@ -44,11 +49,18 @@ func InitDB() (err error) {
 			PrepareStmt: true, // precompile SQL
 		})
 	} else {
-		// Use SQLite
+		// SQLite: PrepareStmt must stay off — it leaves statements open and breaks
+		// AutoMigrate / Create with "cannot commit transaction - SQL statements in progress".
 		db, err = gorm.Open(sqlite.Open(common.SQLitePath), &gorm.Config{
-			PrepareStmt: true, // precompile SQL
+			PrepareStmt: false,
 		})
 		if err == nil {
+			sqlDB, dbErr := db.DB()
+			if dbErr != nil {
+				return dbErr
+			}
+			// SQLite does not handle concurrent writers well.
+			sqlDB.SetMaxOpenConns(1)
 			if pragmaErr := db.Exec("PRAGMA journal_mode=WAL;").Error; pragmaErr != nil {
 				return pragmaErr
 			}
