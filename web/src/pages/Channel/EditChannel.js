@@ -209,7 +209,7 @@ const EditChannel = () => {
                 placeholder='模板消息接口 -> 模板 ID'
               />
             </Form.Group>
-            <Form.Group widths={3}>
+            <Form.Group widths='equal'>
               <Form.Input
                 label='用户 Open ID'
                 name='account_id'
@@ -261,7 +261,7 @@ const EditChannel = () => {
                 placeholder='例如：cm-6gl3pq19'
               />
             </Form.Group>
-            <Form.Group widths={3}>
+            <Form.Group widths='equal'>
               <Form.Input
                 label='区域'
                 name='other'
@@ -356,7 +356,7 @@ const EditChannel = () => {
               群机器人 -&gt; 添加 -&gt; 新建 -&gt; 输入名字，点击添加 -&gt; 点击复制 Webhook
               地址
             </Message>
-            <Form.Group widths={2}>
+            <Form.Group widths='equal'>
               <Form.Input
                 label='Webhook 地址'
                 name='url'
@@ -482,7 +482,7 @@ const EditChannel = () => {
               </a>
               。
             </Message>
-            <Form.Group widths={2}>
+            <Form.Group widths='equal'>
               <Form.Input
                 label='客户端连接密钥'
                 name='secret'
@@ -568,7 +568,7 @@ const EditChannel = () => {
               通过 Discord 群机器人进行推送，配置流程：选择一个 channel -&gt; 设置
               -&gt; 整合 -&gt; 创建 Webhook -&gt; 点击复制 Webhook URL
             </Message>
-            <Form.Group widths={2}>
+            <Form.Group widths='equal'>
               <Form.Input
                 label='Webhook 地址'
                 name='url'
@@ -729,7 +729,7 @@ const EditChannel = () => {
               注意，为了防止攻击者利用本功能访问内部网络，也为了你的信息安全，请求地址必须使用
               HTTPS 协议。
             </Message>
-            <Form.Group widths={2}>
+            <Form.Group widths='equal'>
               <Form.Input
                 label='请求地址'
                 name='url'
