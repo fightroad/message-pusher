@@ -120,17 +120,23 @@ func pushMessageHelper(c *gin.Context, message *model.Message) {
 }
 
 func authMessage(messageToken string, userToken string, channelToken *string) bool {
-	if userToken != "" {
-		if messageToken == userToken {
-			return true
-		}
+	channelTok := ""
+	if channelToken != nil {
+		channelTok = *channelToken
 	}
-	if channelToken != nil && *channelToken != "" {
-		if messageToken != *channelToken {
-			return false
-		}
+	// Neither user nor channel token is set — open push.
+	if userToken == "" && channelTok == "" {
+		return true
 	}
-	return true
+	// Global user token can authenticate any channel.
+	if userToken != "" && messageToken == userToken {
+		return true
+	}
+	// Channel-scoped token only matches this channel.
+	if channelTok != "" && messageToken == channelTok {
+		return true
+	}
+	return false
 }
 
 func processMessage(c *gin.Context, message *model.Message, user *model.User, needAuth bool) {

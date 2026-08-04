@@ -80,7 +80,18 @@ export function showError(error) {
     if (error.name === 'AxiosError') {
       switch (error.response?.status) {
         case 401:
-          clearAuthAndRedirectToLogin();
+          // Session middleware returns 401 with “未登录”; push API also uses 401 for
+          // invalid push tokens — only the former should clear the login session.
+          {
+            const msg = error.response?.data?.message;
+            if (typeof msg === 'string' && msg.includes('未登录')) {
+              clearAuthAndRedirectToLogin();
+            } else if (msg) {
+              toast.error('错误：' + msg, showErrorOptions);
+            } else {
+              clearAuthAndRedirectToLogin();
+            }
+          }
           break;
         case 429:
           toast.error('错误：请求次数过多，请稍后再试！', showErrorOptions);
@@ -185,21 +196,25 @@ export function downloadTextAsFile(text, filename) {
 }
 
 export async function testChannel(username, token, channel) {
-  let res = await API.post(`/push/${username}/`, {
-    token,
-    channel,
-    title: '消息推送服务',
-    description:
-      channel === ''
-        ? '消息推送通道测试成功'
-        : `消息推送通道 ${channel} 测试成功`,
-    content: '欢迎使用消息推送服务，这是一条测试消息。',
-  });
-  const { success, message } = res.data;
-  if (success) {
-    showSuccess('测试消息已发送');
-  } else {
-    showError(message);
+  try {
+    let res = await API.post(`/push/${username}/`, {
+      token: token || '',
+      channel,
+      title: '消息推送服务',
+      description:
+        channel === ''
+          ? '消息推送通道测试成功'
+          : `消息推送通道 ${channel} 测试成功`,
+      content: '欢迎使用消息推送服务，这是一条测试消息。',
+    });
+    const { success, message } = res.data;
+    if (success) {
+      showSuccess('测试消息已发送');
+    } else {
+      showError(message);
+    }
+  } catch (e) {
+    // axios interceptor already handled toast / session redirect
   }
 }
 

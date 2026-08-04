@@ -258,7 +258,7 @@ const ChannelsTable = () => {
                         onClick={() => {
                           testChannel(
                             user.username,
-                            user.token,
+                            channel.token || user.token,
                             channel.name
                           ).then();
                         }}
