@@ -24,7 +24,7 @@ func createRootAccountIfNeed() error {
 			Password:    hashedPassword,
 			Role:        common.RoleRootUser,
 			Status:      common.UserStatusEnabled,
-			DisplayName: "Root User",
+			DisplayName: "超级管理员",
 		}
 		DB.Create(&rootUser)
 	}
