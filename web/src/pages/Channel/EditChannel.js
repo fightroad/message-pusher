@@ -499,24 +499,20 @@ const EditChannel = () => {
         return (
           <>
             <Message>
-              通过 Telegram 机器人进行消息推送。首先向
+              向
               <a href='https://t.me/botfather' target='_blank'>
-                {' '}
-                Bot Father{' '}
+                BotFather
               </a>
-              申请创建一个新的机器人，之后在下方输入获取到的令牌，然后点击你的机器人，随便发送一条消息，之后点击下方的「获取会话
-              ID」按钮，系统将自动为你填写会话
-              ID，最后点击保存按钮保存设置即可。
+              创建机器人并填写令牌；先给机器人发任意一条消息，再点「获取会话
+              ID」，最后保存。
               <br />
-              如需使用反向代理或自建 Bot API，可自定义 API 地址，留空则使用官方地址
-              <code>https://api.telegram.org</code>。
-              <br />
-              若无法直连官方 API，也可配置 HTTP / SOCKS5
-              代理（服务端发消息与获取会话 ID 均生效），例如{' '}
+              API 地址、代理为可选项：留空使用官方 API；无法直连时可填 HTTP /
+              SOCKS5 代理，例如{' '}
               <code>http://127.0.0.1:7890</code>、
               <code>socks5://127.0.0.1:7891</code>
-              ，需要认证时写成{' '}
-              <code>http://user:pass@127.0.0.1:7890</code>。
+              ；带账号密码时写成{' '}
+              <code>http://user:pass@127.0.0.1:7890</code>、
+              <code>socks5://user:pass@127.0.0.1:7891</code>。
             </Message>
             <Form.Group widths={2}>
               <Form.Input
@@ -533,7 +529,7 @@ const EditChannel = () => {
                 onChange={handleInputChange}
                 autoComplete='new-password'
                 value={inputs.other}
-                placeholder='可选，如 http://user:pass@127.0.0.1:7890'
+                placeholder='可选，如 socks5://user:pass@127.0.0.1:7891'
               />
             </Form.Group>
             <Form.Group widths={2}>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Form,
@@ -60,9 +60,6 @@ const MessagesTable = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [operating, setOperating] = useState({ id: null, action: null });
-  const [autoRefresh, setAutoRefresh] = useState(true);
-  const [autoRefreshSeconds, setAutoRefreshSeconds] = useState(10);
-  const autoRefreshSecondsRef = useRef(autoRefreshSeconds);
   const [activePage, setActivePage] = useState(1);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searching, setSearching] = useState(false);
@@ -162,6 +159,7 @@ const MessagesTable = () => {
       const { success, message } = res.data;
       if (success) {
         showSuccess('消息已重新发送！');
+        await refresh();
       } else {
         showError(message);
       }
@@ -234,25 +232,6 @@ const MessagesTable = () => {
     await loadMessages(0);
     setActivePage(1);
   };
-
-  useEffect(() => {
-    let intervalId;
-
-    if (autoRefresh) {
-      intervalId = setInterval(() => {
-        if (autoRefreshSecondsRef.current === 0) {
-          refresh().then();
-          setAutoRefreshSeconds(10);
-          autoRefreshSecondsRef.current = 10;
-        } else {
-          autoRefreshSecondsRef.current -= 1;
-          setAutoRefreshSeconds((autoRefreshSeconds) => autoRefreshSeconds - 1); // Important!
-        }
-      }, 1000);
-    }
-
-    return () => clearInterval(intervalId);
-  }, [autoRefresh]);
 
   return (
     <>
@@ -402,19 +381,7 @@ const MessagesTable = () => {
                   refresh().then();
                 }}
               >
-                手动刷新
-              </Button>
-              <Button
-                size='small'
-                loading={loading}
-                onClick={() => {
-                  setAutoRefresh(!autoRefresh);
-                  setAutoRefreshSeconds(10);
-                }}
-              >
-                {autoRefresh
-                  ? `自动刷新中（${autoRefreshSeconds} 秒后刷新）`
-                  : '自动刷新'}
+                刷新
               </Button>
               <Pagination
                 floated='right'
