@@ -48,7 +48,12 @@ func InitDB() (err error) {
 		db, err = gorm.Open(sqlite.Open(common.SQLitePath), &gorm.Config{
 			PrepareStmt: true, // precompile SQL
 		})
-		common.SysLog("SQL_DSN not set, using SQLite as database")
+		if err == nil {
+			if pragmaErr := db.Exec("PRAGMA journal_mode=WAL;").Error; pragmaErr != nil {
+				return pragmaErr
+			}
+			common.SysLog("SQL_DSN not set, using SQLite as database (WAL enabled)")
+		}
 	}
 	if err == nil {
 		DB = db
