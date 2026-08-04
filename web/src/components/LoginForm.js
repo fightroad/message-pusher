@@ -29,8 +29,12 @@ const LoginForm = () => {
   const [status, setStatus] = useState({});
 
   useEffect(() => {
-    if (searchParams.get("expired")) {
+    if (searchParams.get('expired')) {
+      localStorage.removeItem('user');
+      userDispatch({ type: 'logout' });
       showError('未登录或登录已过期，请重新登录！');
+      searchParams.delete('expired');
+      setSearchParams(searchParams, { replace: true });
     }
     let status = localStorage.getItem('status');
     if (status) {

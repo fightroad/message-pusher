@@ -78,10 +78,9 @@ export function showError(error) {
   console.error(error);
   if (error.message) {
     if (error.name === 'AxiosError') {
-      switch (error.response.status) {
+      switch (error.response?.status) {
         case 401:
-          // toast.error('错误：未登录或登录已过期，请重新登录！', showErrorOptions);
-          window.location.href = '/login?expired=true';
+          clearAuthAndRedirectToLogin();
           break;
         case 429:
           toast.error('错误：请求次数过多，请稍后再试！', showErrorOptions);
@@ -101,6 +100,23 @@ export function showError(error) {
   } else {
     toast.error('错误：' + error, showErrorOptions);
   }
+}
+
+let redirectingToLogin = false;
+
+export function clearAuthAndRedirectToLogin() {
+  localStorage.removeItem('user');
+  if (redirectingToLogin) {
+    return;
+  }
+  redirectingToLogin = true;
+  toast.dismiss();
+  const onLoginPage = window.location.pathname.endsWith('/login');
+  if (onLoginPage) {
+    redirectingToLogin = false;
+    return;
+  }
+  window.location.href = '/login?expired=true';
 }
 
 export function showWarning(message) {
