@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Form, Header, Segment } from 'semantic-ui-react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { API, showError, showSuccess } from '../../helpers';
 import { loadUser, loadUserChannels } from '../../helpers/loader';
 
@@ -87,7 +87,7 @@ const EditMessage = () => {
   return (
     <>
       <Segment loading={loading} className={'clearing'}>
-        <Header as='h3'>消息编辑</Header>
+        <Header as='h3'>{isEditing ? '编辑消息' : '发送消息'}</Header>
         <Form>
           <Form.Group widths='equal'>
             <Form.Input
@@ -142,6 +142,11 @@ const EditMessage = () => {
               onChange={handleInputChange}
             />
           </Form.Group>
+          {isEditing && (
+            <Button as={Link} to='/message' floated='left'>
+              返回
+            </Button>
+          )}
           <Button type='submit' floated='right' onClick={send}>
             发送
           </Button>

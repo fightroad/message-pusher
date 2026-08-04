@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Form, Header, Segment } from 'semantic-ui-react';
+import { Link } from 'react-router-dom';
 import { API, showError, showSuccess } from '../../helpers';
 
 const AddUser = () => {
@@ -65,6 +66,9 @@ const AddUser = () => {
               required
             />
           </Form.Field>
+          <Button as={Link} to='/user'>
+            返回
+          </Button>
           <Button type={'submit'} onClick={submit}>
             提交
           </Button>

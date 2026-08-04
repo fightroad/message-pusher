@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Form, Header, Segment } from 'semantic-ui-react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { API, showError, showSuccess } from '../../helpers';
 
 const EditUser = () => {
   const params = useParams();
   const userId = params.id;
+  const backTo = userId ? '/user' : '/setting';
   const [loading, setLoading] = useState(true);
   const [inputs, setInputs] = useState({
     username: '',
@@ -122,6 +123,9 @@ const EditUser = () => {
               readOnly
             />
           </Form.Field>
+          <Button as={Link} to={backTo}>
+            返回
+          </Button>
           <Button onClick={submit}>提交</Button>
         </Form>
       </Segment>

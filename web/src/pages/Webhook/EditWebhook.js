@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Form, Header, Message, Segment } from 'semantic-ui-react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { API, showError, showSuccess, verifyJSON } from '../../helpers';
 import { loadUserChannels } from '../../helpers/loader';
 
@@ -164,6 +164,9 @@ const EditWebhook = () => {
               style={{ minHeight: 200, fontFamily: 'JetBrains Mono, Consolas' }}
             />
           </Form.Group>
+          <Button as={Link} to='/webhook'>
+            返回
+          </Button>
           <Button onClick={submit}>提交</Button>
         </Form>
       </Segment>

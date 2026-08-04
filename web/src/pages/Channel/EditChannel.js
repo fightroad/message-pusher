@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Form, Header, Message, Segment } from 'semantic-ui-react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { API, generateToken, showError, showSuccess } from '../../helpers';
 import { CHANNEL_OPTIONS } from '../../constants';
 
@@ -826,6 +826,9 @@ const EditChannel = () => {
             }}
           />
           {renderChannelForm()}
+          <Button as={Link} to='/channel'>
+            返回
+          </Button>
           <Button disabled={type === 'email'} onClick={submit}>
             提交
           </Button>
