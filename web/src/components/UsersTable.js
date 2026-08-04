@@ -26,6 +26,19 @@ function renderRole(role) {
   }
 }
 
+function getSelfRole() {
+  try {
+    const user = JSON.parse(localStorage.getItem('user'));
+    return user?.role ?? 0;
+  } catch (e) {
+    return 0;
+  }
+}
+
+function canEditUser(targetRole) {
+  return getSelfRole() > targetRole;
+}
+
 const UsersTable = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -279,13 +292,28 @@ const UsersTable = () => {
                       >
                         {user.status === 1 ? '禁用' : '启用'}
                       </Button>
-                      <Button
-                        size={'small'}
-                        as={Link}
-                        to={'/user/edit/' + user.id}
-                      >
-                        编辑
-                      </Button>
+                      {canEditUser(user.role) ? (
+                        <Button
+                          size={'small'}
+                          as={Link}
+                          to={'/user/edit/' + user.id}
+                        >
+                          编辑
+                        </Button>
+                      ) : (
+                        <Button
+                          size={'small'}
+                          onClick={() => {
+                            showError(
+                              user.role === 100
+                                ? '无法编辑超级管理员用户'
+                                : '无权编辑同级或更高等级用户'
+                            );
+                          }}
+                        >
+                          编辑
+                        </Button>
+                      )}
                       <Dropdown
                         size={'small'}
                         text='更多'

@@ -232,9 +232,13 @@ func GetUser(c *gin.Context) {
 	}
 	myRole := c.GetInt("role")
 	if myRole <= user.Role {
+		message := "无权编辑同级或更高等级用户"
+		if user.Role == common.RoleRootUser {
+			message = "无法编辑超级管理员用户"
+		}
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
-			"message": "无权获取同级或更高等级用户的信息",
+			"message": message,
 		})
 		return
 	}
@@ -331,9 +335,13 @@ func UpdateUser(c *gin.Context) {
 	}
 	myRole := c.GetInt("role")
 	if myRole <= originUser.Role {
+		message := "无权编辑同级或更高等级用户"
+		if originUser.Role == common.RoleRootUser {
+			message = "无法编辑超级管理员用户"
+		}
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
-			"message": "无权更新同权限等级或更高权限等级的用户信息",
+			"message": message,
 		})
 		return
 	}
