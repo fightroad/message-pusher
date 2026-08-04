@@ -17,8 +17,8 @@ _✨ 搭建专属于你的消息推送服务，支持多种消息推送方式，
   <a href="https://github.com/songquanpeng/message-pusher/releases/latest">
     <img src="https://img.shields.io/github/v/release/songquanpeng/message-pusher?color=brightgreen&include_prereleases" alt="release">
   </a>
-  <a href="https://hub.docker.com/repository/docker/justsong/message-pusher">
-    <img src="https://img.shields.io/docker/pulls/justsong/message-pusher?color=brightgreen" alt="docker pull">
+  <a href="https://hub.docker.com/repository/docker/fightroad/message-pusher">
+    <img src="https://img.shields.io/docker/pulls/fightroad/message-pusher?color=brightgreen" alt="docker pull">
   </a>
   <a href="https://github.com/songquanpeng/message-pusher/releases/latest">
     <img src="https://img.shields.io/github/downloads/songquanpeng/message-pusher/total?color=brightgreen&include_prereleases" alt="release">
@@ -81,9 +81,9 @@ _✨ 搭建专属于你的消息推送服务，支持多种消息推送方式，
 
 ## 部署
 ### 通过 Docker 部署
-部署：`docker run -d --restart always --name message-pusher -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/message-pusher:/data justsong/message-pusher`
+部署：`docker run -d --restart always --name message-pusher -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/message-pusher:/data fightroad/message-pusher`
 
-如果无法拉去，请将 `justsong/message-pusher` 替换为 `ghcr.io/songquanpeng/message-pusher`。
+如果无法拉去，请将 `fightroad/message-pusher` 替换为 `ghcr.io/songquanpeng/message-pusher`。
 
 更新：`docker run --rm -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower -cR`
 
