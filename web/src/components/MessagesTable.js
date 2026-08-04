@@ -59,6 +59,7 @@ function renderStatus(status) {
 const MessagesTable = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [operating, setOperating] = useState({ id: null, action: null });
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [autoRefreshSeconds, setAutoRefreshSeconds] = useState(10);
   const autoRefreshSecondsRef = useRef(autoRefreshSeconds);
@@ -72,6 +73,9 @@ const MessagesTable = () => {
     link: '',
   }); // Message to be viewed
   const [viewModalOpen, setViewModalOpen] = useState(false);
+
+  const isOperating = (id, action) =>
+    operating.id === id && operating.action === action;
 
   const loadMessages = async (startIdx) => {
     setLoading(true);
@@ -134,44 +138,59 @@ const MessagesTable = () => {
   }, []);
 
   const viewMessage = async (id) => {
-    setLoading(true);
-    const res = await API.get(`/api/message/${id}`);
-    const { success, message, data } = res.data;
-    if (success) {
-      setMessage(data);
-      setViewModalOpen(true);
-    } else {
-      showError(message);
+    setOperating({ id, action: 'view' });
+    try {
+      const res = await API.get(`/api/message/${id}`);
+      const { success, message, data } = res.data;
+      if (success) {
+        setMessage(data);
+        setViewModalOpen(true);
+      } else {
+        showError(message);
+      }
+    } catch (e) {
+      // axios interceptor already handled toast
+    } finally {
+      setOperating({ id: null, action: null });
     }
-    setLoading(false);
   };
 
   const resendMessage = async (id) => {
-    setLoading(true);
-    const res = await API.post(`/api/message/resend/${id}`);
-    const { success, message } = res.data;
-    if (success) {
-      showSuccess('消息已重新发送！');
-    } else {
-      showError(message);
+    setOperating({ id, action: 'resend' });
+    try {
+      const res = await API.post(`/api/message/resend/${id}`);
+      const { success, message } = res.data;
+      if (success) {
+        showSuccess('消息已重新发送！');
+      } else {
+        showError(message);
+      }
+    } catch (e) {
+      // axios interceptor already handled toast
+    } finally {
+      setOperating({ id: null, action: null });
     }
-    setLoading(false);
   };
 
   const deleteMessage = async (id, idx) => {
-    setLoading(true);
-    const res = await API.delete(`/api/message/${id}`);
-    const { success, message } = res.data;
-    if (success) {
-      showSuccess('操作成功完成！');
-      let newMessages = [...messages];
-      let realIdx = (activePage - 1) * ITEMS_PER_PAGE + idx;
-      newMessages[realIdx].deleted = true;
-      setMessages(newMessages);
-    } else {
-      showError(message);
+    setOperating({ id, action: 'delete' });
+    try {
+      const res = await API.delete(`/api/message/${id}`);
+      const { success, message } = res.data;
+      if (success) {
+        showSuccess('操作成功完成！');
+        let newMessages = [...messages];
+        let realIdx = (activePage - 1) * ITEMS_PER_PAGE + idx;
+        newMessages[realIdx].deleted = true;
+        setMessages(newMessages);
+      } else {
+        showError(message);
+      }
+    } catch (e) {
+      // axios interceptor already handled toast
+    } finally {
+      setOperating({ id: null, action: null });
     }
-    setLoading(false);
   };
 
   const searchMessages = async () => {
@@ -319,7 +338,7 @@ const MessagesTable = () => {
                       <Button
                         size={'small'}
                         positive
-                        loading={loading}
+                        loading={isOperating(message.id, 'view')}
                         onClick={() => {
                           viewMessage(message.id).then();
                         }}
@@ -329,7 +348,6 @@ const MessagesTable = () => {
                       <Button
                         size={'small'}
                         primary
-                        loading={loading}
                         as={Link}
                         to={'/editor/' + message.id}
                       >
@@ -338,7 +356,7 @@ const MessagesTable = () => {
                       <Button
                         size={'small'}
                         color={'yellow'}
-                        loading={loading}
+                        loading={isOperating(message.id, 'resend')}
                         onClick={() => {
                           resendMessage(message.id).then();
                         }}
@@ -359,7 +377,7 @@ const MessagesTable = () => {
                         <Button
                           size={'small'}
                           negative
-                          loading={loading}
+                          loading={isOperating(message.id, 'delete')}
                           onClick={() => {
                             deleteMessage(message.id, idx).then();
                           }}
