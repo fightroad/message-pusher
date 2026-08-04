@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Button, Form, Header, Segment } from 'semantic-ui-react';
 import { useParams, Link } from 'react-router-dom';
 import { API, showError, showSuccess } from '../../helpers';
+import { UserContext } from '../../context/User';
 
 const EditUser = () => {
   const params = useParams();
   const userId = params.id;
   const backTo = userId ? '/user' : '/setting';
+  const [, userDispatch] = useContext(UserContext);
   const [loading, setLoading] = useState(true);
   const [inputs, setInputs] = useState({
     username: '',
@@ -52,6 +54,16 @@ const EditUser = () => {
     const { success, message } = res.data;
     if (success) {
       showSuccess('用户信息更新成功！');
+      if (!userId) {
+        let user = localStorage.getItem('user');
+        if (user) {
+          user = JSON.parse(user);
+          user.username = inputs.username;
+          user.display_name = inputs.display_name;
+          localStorage.setItem('user', JSON.stringify(user));
+          userDispatch({ type: 'login', payload: user });
+        }
+      }
     } else {
       showError(message);
     }
