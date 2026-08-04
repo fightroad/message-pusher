@@ -145,14 +145,26 @@ const EditMessage = () => {
           <Button type='submit' floated='right' onClick={send}>
             发送
           </Button>
-          <Button
-            floated='right'
-            onClick={() => {
-              handleInputChange(null, { name: 'async', value: !async });
-            }}
-          >
-            {async ? '异步' : '同步'}
-          </Button>
+          <Button.Group floated='right' style={{ marginRight: '0.5em' }}>
+            <Button
+              type='button'
+              active={!async}
+              onClick={() => {
+                handleInputChange(null, { name: 'async', value: false });
+              }}
+            >
+              同步
+            </Button>
+            <Button
+              type='button'
+              active={async}
+              onClick={() => {
+                handleInputChange(null, { name: 'async', value: true });
+              }}
+            >
+              异步
+            </Button>
+          </Button.Group>
         </Form>
       </Segment>
     </>
