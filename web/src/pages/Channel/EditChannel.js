@@ -3,7 +3,6 @@ import { Button, Form, Header, Message, Segment } from 'semantic-ui-react';
 import { useParams } from 'react-router-dom';
 import { API, generateToken, showError, showSuccess } from '../../helpers';
 import { CHANNEL_OPTIONS } from '../../constants';
-import axios from 'axios';
 
 const EditChannel = () => {
   const params = useParams();
@@ -66,6 +65,16 @@ const EditChannel = () => {
           localInputs.url = 'https://api.day.app';
         }
         break;
+      case 'telegram':
+        if (localInputs.url === '') {
+          localInputs.url = 'https://api.telegram.org';
+        } else if (localInputs.url.endsWith('/')) {
+          localInputs.url = localInputs.url.slice(0, -1);
+        }
+        if (localInputs.other) {
+          localInputs.other = localInputs.other.trim();
+        }
+        break;
       case 'one_bot':
         if (localInputs.url.endsWith('/')) {
           localInputs.url = localInputs.url.slice(0, -1);
@@ -120,26 +129,25 @@ const EditChannel = () => {
   };
 
   const getTelegramChatId = async () => {
-    if (inputs.telegram_bot_token === '') {
+    if (inputs.secret === '') {
       showError('请先输入 Telegram 机器人令牌！');
       return;
     }
-    let res = await axios.get(
-      `https://api.telegram.org/bot${inputs.secret}/getUpdates`
-    );
-    const { ok } = res.data;
-    if (ok) {
-      let result = res.data.result;
-      if (result.length === 0) {
-        showError(`请先向你的机器人发送一条任意消息！`);
-      } else {
-        let id = result[0]?.message?.chat?.id;
-        id = id.toString();
-        setInputs((inputs) => ({ ...inputs, account_id: id }));
+    try {
+      let res = await API.post('/api/channel/telegram/chat_id', {
+        secret: inputs.secret,
+        url: inputs.url,
+        other: inputs.other,
+      });
+      const { success, message, data } = res.data;
+      if (success) {
+        setInputs((inputs) => ({ ...inputs, account_id: data }));
         showSuccess('会话 ID 获取成功！');
+      } else {
+        showError(message);
       }
-    } else {
-      showError(`发生错误：${res.description}`);
+    } catch (e) {
+      showError(`请求失败：${e.message}`);
     }
   };
 
@@ -279,11 +287,11 @@ const EditChannel = () => {
               。
               <br />
               <br />
-              注意，企业微信要求配置可信 IP，步骤：应用管理 -> 自建 -> 创建应用
-              -> 应用设置页面下拉中找到「企业可信 IP」，点击配置 -> 设置可信域名
-              -> 在「可调用
+              注意，企业微信要求配置可信 IP，步骤：应用管理 -&gt; 自建 -&gt; 创建应用
+              -&gt; 应用设置页面下拉中找到「企业可信 IP」，点击配置 -&gt; 设置可信域名
+              -&gt; 在「可调用
               JS-SDK、跳转小程序的可信域名」下面填写一个域名，然后点击「申请校验域名」，根据提示完成校验
-              -> 之后填写服务器 IP 地址（此 IP
+              -&gt; 之后填写服务器 IP 地址（此 IP
               地址是消息推送服务所部署在的服务器的 IP
               地址，未必是上面校验域名中记录的 IP 地址）。
             </Message>
@@ -344,8 +352,8 @@ const EditChannel = () => {
         return (
           <>
             <Message>
-              通过企业微信群机器人进行推送，配置流程：选择一个群聊 -> 设置 ->
-              群机器人 -> 添加 -> 新建 -> 输入名字，点击添加 -> 点击复制 Webhook
+              通过企业微信群机器人进行推送，配置流程：选择一个群聊 -&gt; 设置 -&gt;
+              群机器人 -&gt; 添加 -&gt; 新建 -&gt; 输入名字，点击添加 -&gt; 点击复制 Webhook
               地址
             </Message>
             <Form.Group widths={2}>
@@ -365,7 +373,7 @@ const EditChannel = () => {
           <>
             <Message>
               通过飞书群机器人进行推送，飞书桌面客户端的配置流程：选择一个群聊
-              -> 设置 -> 群机器人 -> 添加机器人 -> 自定义机器人 -> 添加（
+              -&gt; 设置 -&gt; 群机器人 -&gt; 添加机器人 -&gt; 自定义机器人 -&gt; 添加（
               <strong>注意选中「签名校验」</strong>）。具体参见：
               <a
                 target='_blank'
@@ -400,8 +408,8 @@ const EditChannel = () => {
           <>
             <Message>
               通过钉钉群机器人进行推送，钉钉桌面客户端的配置流程：选择一个群聊
-              -> 群设置 -> 智能群助手 -> 添加机器人（点击右侧齿轮图标） ->
-              自定义 -> 添加（
+              -&gt; 群设置 -&gt; 智能群助手 -&gt; 添加机器人（点击右侧齿轮图标） -&gt;
+              自定义 -&gt; 添加（
               <strong>注意选中「加密」</strong>）。具体参见：
               <a
                 target='_blank'
@@ -499,7 +507,35 @@ const EditChannel = () => {
               申请创建一个新的机器人，之后在下方输入获取到的令牌，然后点击你的机器人，随便发送一条消息，之后点击下方的「获取会话
               ID」按钮，系统将自动为你填写会话
               ID，最后点击保存按钮保存设置即可。
+              <br />
+              如需使用反向代理或自建 Bot API，可自定义 API 地址，留空则使用官方地址
+              <code>https://api.telegram.org</code>。
+              <br />
+              若无法直连官方 API，也可配置 HTTP / SOCKS5
+              代理（服务端发消息与获取会话 ID 均生效），例如{' '}
+              <code>http://127.0.0.1:7890</code>、
+              <code>socks5://127.0.0.1:7891</code>
+              ，需要认证时写成{' '}
+              <code>http://user:pass@127.0.0.1:7890</code>。
             </Message>
+            <Form.Group widths={2}>
+              <Form.Input
+                label='API 地址'
+                name='url'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.url}
+                placeholder='不填则使用官方地址'
+              />
+              <Form.Input
+                label='代理地址'
+                name='other'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.other}
+                placeholder='可选，如 http://user:pass@127.0.0.1:7890'
+              />
+            </Form.Group>
             <Form.Group widths={2}>
               <Form.Input
                 label='Telegram 机器人令牌'
@@ -529,8 +565,8 @@ const EditChannel = () => {
         return (
           <>
             <Message>
-              通过 Discord 群机器人进行推送，配置流程：选择一个 channel -> 设置
-              -> 整合 -> 创建 Webhook -> 点击复制 Webhook URL
+              通过 Discord 群机器人进行推送，配置流程：选择一个 channel -&gt; 设置
+              -&gt; 整合 -&gt; 创建 Webhook -&gt; 点击复制 Webhook URL
             </Message>
             <Form.Group widths={2}>
               <Form.Input
@@ -626,9 +662,9 @@ const EditChannel = () => {
               </a>
               。
               <br />
-              需要为应用添加机器人能力：应用能力->添加应用能力—>机器人。
+              需要为应用添加机器人能力：应用能力-&gt;添加应用能力—&gt;机器人。
               <br />
-              需要为应用添加消息发送权限：开发配置->权限管理->权限配置->搜索「获取与发送单聊、群组消息」->开通权限。
+              需要为应用添加消息发送权限：开发配置-&gt;权限管理-&gt;权限配置-&gt;搜索「获取与发送单聊、群组消息」-&gt;开通权限。
               <br />
               注意，添加完成权限后需要发布版本提交审核才能见效。
               <br />

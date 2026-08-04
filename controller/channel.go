@@ -6,6 +6,7 @@ import (
 	"message-pusher/model"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,7 +34,6 @@ func GetAllChannels(c *gin.Context) {
 		"message": "",
 		"data":    channels,
 	})
-	return
 }
 
 func GetBriefChannels(c *gin.Context) {
@@ -51,7 +51,6 @@ func GetBriefChannels(c *gin.Context) {
 		"message": "",
 		"data":    channels,
 	})
-	return
 }
 
 func SearchChannels(c *gin.Context) {
@@ -70,7 +69,6 @@ func SearchChannels(c *gin.Context) {
 		"message": "",
 		"data":    channels,
 	})
-	return
 }
 
 func GetChannel(c *gin.Context) {
@@ -96,7 +94,6 @@ func GetChannel(c *gin.Context) {
 		"message": "",
 		"data":    channel_,
 	})
-	return
 }
 
 func AddChannel(c *gin.Context) {
@@ -150,7 +147,6 @@ func AddChannel(c *gin.Context) {
 		"success": true,
 		"message": "",
 	})
-	return
 }
 
 func DeleteChannel(c *gin.Context) {
@@ -169,7 +165,6 @@ func DeleteChannel(c *gin.Context) {
 		"success": true,
 		"message": "",
 	})
-	return
 }
 
 func UpdateChannel(c *gin.Context) {
@@ -223,5 +218,42 @@ func UpdateChannel(c *gin.Context) {
 		"message": "",
 		"data":    cleanChannel,
 	})
-	return
+}
+
+type telegramChatIdRequest struct {
+	Secret string `json:"secret"`
+	URL    string `json:"url"`
+	Other  string `json:"other"`
+}
+
+func GetTelegramChatId(c *gin.Context) {
+	req := telegramChatIdRequest{}
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "无效的参数",
+		})
+		return
+	}
+	if req.Secret == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "请先输入 Telegram 机器人令牌",
+		})
+		return
+	}
+	chatId, err := channel.GetTelegramChatId(req.URL, req.Secret, strings.TrimSpace(req.Other))
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data":    chatId,
+	})
 }
