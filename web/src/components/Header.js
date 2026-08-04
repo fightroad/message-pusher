@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/User';
 
 import { Button, Container, Dropdown, Icon, Menu, Segment } from 'semantic-ui-react';
@@ -54,8 +54,18 @@ const headerButtons = [
 const Header = () => {
   const [userState, userDispatch] = useContext(UserContext);
   let navigate = useNavigate();
+  const location = useLocation();
 
   const [showSidebar, setShowSidebar] = useState(false);
+
+  const isActive = (to) => {
+    if (to === '/') {
+      return location.pathname === '/';
+    }
+    return (
+      location.pathname === to || location.pathname.startsWith(`${to}/`)
+    );
+  };
 
   async function logout() {
     setShowSidebar(false);
@@ -70,12 +80,14 @@ const Header = () => {
     setShowSidebar(!showSidebar);
   };
 
-  const renderButtons = (isMobile) => {
+  const renderButtons = (mobile) => {
     return headerButtons.map((button) => {
-      if (button.admin && !isAdmin()) return <></>;
-      if (isMobile) {
+      if (button.admin && !isAdmin()) return null;
+      if (mobile) {
         return (
           <Menu.Item
+            key={button.name}
+            active={isActive(button.to)}
             onClick={() => {
               navigate(button.to);
               setShowSidebar(false);
@@ -86,7 +98,11 @@ const Header = () => {
         );
       }
       return (
-        <Menu.Item key={button.name} as={Link} to={button.to}>
+        <Menu.Item
+          key={button.name}
+          active={isActive(button.to)}
+          onClick={() => navigate(button.to)}
+        >
           <Icon name={button.icon} />
           {button.name}
         </Menu.Item>
@@ -168,7 +184,7 @@ const Header = () => {
 
   return (
     <>
-      <Menu borderless style={{ borderTop: 'none' }}>
+      <Menu secondary pointing style={{ borderTop: 'none' }}>
         <Container>
           <Menu.Item as={Link} to='/' className={'hide-on-mobile'}>
             <img src='/logo.png' alt='logo' style={{ marginRight: '0.75em' }} />
