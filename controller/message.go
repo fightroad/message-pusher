@@ -218,13 +218,11 @@ func saveAndSendMessage(user *model.User, message *model.Message, channel_ *mode
 		if err != nil {
 			return err
 		}
-		go syncMessageToUser(message, user.Id)
 	} else {
 		if message.Async {
 			return errors.New("异步发送消息需要用户具备消息持久化的权限")
 		}
 		message.Link = "unsaved" // This is for user to identify whether the message is saved
-		go syncMessageToUser(message, user.Id)
 	}
 	if !message.Async {
 		err := channel.SendMessage(message, user, channel_)
@@ -286,7 +284,6 @@ func RenderMessage(c *gin.Context) {
 		"description": message.Description,
 		"content":     message.HTMLContent,
 	})
-	return
 }
 
 func GetUserMessages(c *gin.Context) {
@@ -308,7 +305,6 @@ func GetUserMessages(c *gin.Context) {
 		"message": "",
 		"data":    messages,
 	})
-	return
 }
 
 func GetMessage(c *gin.Context) {
@@ -327,7 +323,6 @@ func GetMessage(c *gin.Context) {
 		"message": "",
 		"data":    message,
 	})
-	return
 }
 
 func GetMessageStatus(c *gin.Context) {
@@ -345,7 +340,6 @@ func GetMessageStatus(c *gin.Context) {
 		"message": "",
 		"status":  status,
 	})
-	return
 }
 
 func SearchMessages(c *gin.Context) {
@@ -363,7 +357,6 @@ func SearchMessages(c *gin.Context) {
 		"message": "",
 		"data":    messages,
 	})
-	return
 }
 
 func ResendMessage(c *gin.Context) {
@@ -401,7 +394,6 @@ func ResendMessage(c *gin.Context) {
 		"success": true,
 		"message": "",
 	})
-	return
 }
 
 func DeleteMessage(c *gin.Context) {
@@ -419,7 +411,6 @@ func DeleteMessage(c *gin.Context) {
 		"success": true,
 		"message": "",
 	})
-	return
 }
 
 func DeleteAllMessages(c *gin.Context) {
@@ -435,5 +426,4 @@ func DeleteAllMessages(c *gin.Context) {
 		"success": true,
 		"message": "",
 	})
-	return
 }

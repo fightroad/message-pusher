@@ -12,7 +12,6 @@ import {
   API,
   openPage,
   showError,
-  showInfo,
   showSuccess,
   showWarning,
 } from '../helpers';
@@ -132,24 +131,6 @@ const MessagesTable = () => {
         showError(reason);
       });
     checkPermission().then();
-    const connectEventSource = () => {
-      const eventSource = new EventSource('/api/message/stream');
-      eventSource.onmessage = (e) => {
-        const newMessage = JSON.parse(e.data);
-        insertNewMessage(newMessage);
-      };
-      eventSource.onerror = () => {
-        showError('服务端消息推送流连接出错！即将重试...');
-        eventSource.close();
-        setTimeout(connectEventSource, 1000); // 1000ms
-      };
-      return eventSource;
-    };
-    const eventSource = connectEventSource();
-    showInfo('服务器消息推送流已连接，您将实时收到新消息');
-    return () => {
-      eventSource.close();
-    };
   }, []);
 
   const viewMessage = async (id) => {
@@ -228,16 +209,6 @@ const MessagesTable = () => {
     }
     setMessages(sortedMessages);
     setLoading(false);
-  };
-
-  const insertNewMessage = (message) => {
-    console.log(messages);
-    setMessages((messages) => {
-      let newMessages = [message];
-      newMessages.push(...messages);
-      return newMessages;
-    });
-    setActivePage(1);
   };
 
   const refresh = async () => {
