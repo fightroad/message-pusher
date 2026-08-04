@@ -344,7 +344,8 @@ func GetMessageStatus(c *gin.Context) {
 
 func SearchMessages(c *gin.Context) {
 	keyword := c.Query("keyword")
-	messages, err := model.SearchMessages(keyword)
+	userId := c.GetInt("id")
+	messages, err := model.SearchMessages(userId, keyword)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,

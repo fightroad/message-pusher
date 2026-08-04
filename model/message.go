@@ -74,8 +74,9 @@ func GetMessagesByUserId(userId int, startIdx int, num int) (messages []*Message
 	return messages, err
 }
 
-func SearchMessages(keyword string) (messages []*Message, err error) {
+func SearchMessages(userId int, keyword string) (messages []*Message, err error) {
 	err = DB.Select([]string{"id", "title", "channel", "timestamp", "status"}).
+		Where("user_id = ?", userId).
 		Where("id = ? or title LIKE ? or description LIKE ? or content LIKE ?", keyword, keyword+"%", keyword+"%", keyword+"%").
 		Order("id desc").
 		Find(&messages).Error
