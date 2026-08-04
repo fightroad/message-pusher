@@ -10,6 +10,7 @@ type WebhookConstructRule struct {
 	Description string `json:"description"`
 	Content     string `json:"content"`
 	URL         string `json:"url"`
+	To          string `json:"to"`
 }
 
 type Webhook struct {

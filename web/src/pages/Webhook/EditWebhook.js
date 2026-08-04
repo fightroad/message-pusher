@@ -15,14 +15,16 @@ const EditWebhook = () => {
   "title": "attr1",
   "description": "attr2.sub_attr",
   "content": "attr3",
-  "url": "attr4"
+  "url": "attr4",
+  "to": "attr5"
 }`,
     construct_rule:
       '{\n' +
       '  "title": "$title",\n' +
       '  "description": "描述信息：$description",\n' +
       '  "content": "内容：$content",\n' +
-      '  "url": "https://example.com/$title"\n' +
+      '  "url": "https://example.com/$title",\n' +
+      '  "to": "$to"\n' +
       '}',
     channel: 'default',
   };

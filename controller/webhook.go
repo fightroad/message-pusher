@@ -257,6 +257,7 @@ func TriggerWebhook(c *gin.Context) {
 		Description: constructRule.Description,
 		Content:     constructRule.Content,
 		URL:         constructRule.URL,
+		To:          constructRule.To,
 	}
 	processMessage(c, message, user, false)
 }
