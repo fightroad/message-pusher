@@ -48,18 +48,20 @@ _✨ 搭建专属于你的消息推送服务，支持多种消息推送方式，
 1. **多种消息推送方式**：
    + 邮件消息，
    + 微信测试号，
-   + QQ，
+   + OneBot（QQ 等），
    + 企业微信应用号，
-   + 企业微信群机器人
-   + 飞书自建应用
+   + 企业微信群机器人，
+   + 飞书自建应用，
    + 飞书群机器人，
    + 钉钉群机器人，
-   + Bark App,
+   + Bark App，
+   + Ntfy / Gotify / PushMe（自托管友好），
    + WebSocket 客户端（[官方客户端](https://github.com/songquanpeng/personal-assistant)，[接入文档](./docs/API.md#websocket-客户端)），
    + Telegram 机器人，
    + Discord 群机器人，
    + **群组消息**：可以将多个推送通道组合成一个群组，然后向群组发送消息，可以实现一次性推送到多个渠道的功能，
    + **自定义消息**：可以自定义消息请求 URL 和请求体格式，实现与其他服务的对接，支持[众多第三方服务](https://iamazing.cn/page/message-pusher-common-custom-templates)。
+   + **不推送**：仅保存消息到数据库。
 2. 支持**自定义 Webhook，反向适配各种调用平台**，你可以接入各种已有的系统，而无需修改其代码。
 3. 支持在 Web 端编辑 & 管理发送的消息。
 4. 支持**异步**消息发送。
@@ -206,13 +208,16 @@ proxy_send_timeout 300s;
       6. `lark`：通过飞书群机器人进行推送（注意事项同上）。
       7. `ding`：通过钉钉群机器人进行推送（注意事项同上）。
       8. `bark`：通过 Bark 进行推送（支持 `title` 和 `description` 字段）。
-      9. `client`：通过 WebSocket 客户端进行推送（支持 `title` 和 `description` 字段）。
-      10. `telegram`：通过 Telegram 机器人进行推送（`description` 或 `content` 字段二选一，支持 Markdown 的子集）。
-      11. `discord`：通过 Discord 群机器人进行推送（注意事项同上）。
-      12. `one_api`：通过 OneAPI 协议推送消息到 QQ。
-      13. `group`：通过预先配置的消息推送通道群组进行推送。
-      14. `custom`：通过预先配置好的自定义推送通道进行推送。
-      15. `none`：仅保存到数据库，不做推送。
+      9. `ntfy`：通过 ntfy 进行推送（可自建，支持 `title`、`description`/`content`，消息 `url` 会作为点击跳转）。
+      10. `gotify`：通过 Gotify 进行推送（自托管，支持 `title`、`description`/`content`）。
+      11. `pushme`：通过 PushMe 进行推送（可自建，支持 `title`、`description`/`content`）。
+      12. `client`：通过 WebSocket 客户端进行推送（支持 `title` 和 `description` 字段）。
+      13. `telegram`：通过 Telegram 机器人进行推送（`description` 或 `content` 字段二选一，支持 Markdown 的子集）。
+      14. `discord`：通过 Discord 群机器人进行推送（注意事项同上）。
+      15. `one_bot`：通过 OneBot 协议推送消息（可用于 QQ 等）。
+      16. `group`：通过预先配置的消息推送通道群组进行推送。
+      17. `custom`：通过预先配置好的自定义推送通道进行推送。
+      18. `none`：仅保存到数据库，不做推送。
    5. `token`：如果你在后台设置了推送 token，则此项必填。另外可以通过设置 HTTP `Authorization` 头部设置此项。
       * 注意令牌有两种，一种是全局鉴权令牌，一种是通道维度的令牌，前者可以鉴权任何通道，后者只能鉴权指定通道。
    6. `url`：选填，如果不填则系统自动为消息生成 URL，其内容为消息详情。
@@ -240,10 +245,17 @@ proxy_send_timeout 300s;
 |     `lark`      |    ❌    |       ✅       |     ✅     |   ❌   |  ✅   |      ✅      |
 |   `lark_app`    |    ❌    |       ✅       |     ✅     |  ❌️   |  ✅   |      ✅      |
 |     `ding`      |    ✅    |       ✅       |     ✅     |  ✅️   |  ✅   |      ✅      |
-|     `bark`      |    ✅    |       ✅       |     ✅     |  ✅️   |  ❌   |      ✅      |
+|     `bark`      |    ✅    |       ✅       |     ✅     |  ✅️   |  ❌   |      ❌      |
+|     `ntfy`      |    ✅    |       ✅       |     ✅     |  ✅️   |  ❌   |      ❌      |
+|    `gotify`     |    ✅    |       ✅       |     ✅     |   ❌   |  ❌   |      ❌      |
+|    `pushme`     |    ✅    |       ✅       |     ✅     |   ❌   |  ❌   |      ❌      |
 |    `client`     |    ✅    |       ✅       |     ❌     |   ❌   |  ❌   |      ❌      |
 |   `telegram`    |    ❌    |       ❌       |     ✅     |   ❌   |  ✅   |      ✅      |
 |    `discord`    |    ❌    |       ❌       |     ✅     |   ❌   |  ✅   |      ❌      |
+|    `one_bot`    |    ❌    |       ✅       |     ✅     |   ❌   |  ✅   |      ❌      |
+|     `group`     |    ✅    |       ✅       |     ✅     |  ✅️   |  ✅️  |      ✅      |
+|    `custom`     |    ✅    |       ✅       |     ✅     |  ✅️   |  ✅️  |      ❌      |
+|     `none`      |    ✅    |       ✅       |     ✅     |  ✅️   |  ❌   |      ❌      |
 
 注意：
 1. 对于大部分通道，`description` 字段和 `content` 是不能同时存在的，如果你只需要文字消息，请使用 `description` 字段，如果你需要发送 Markdown 消息，请使用 `content` 字段。

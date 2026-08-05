@@ -27,6 +27,13 @@ const EditChannel = () => {
     bark_level: '',
     bark_is_archive: '',
     bark_url: '',
+    ntfy_priority: '',
+    ntfy_icon: '',
+    ntfy_username: '',
+    ntfy_password: '',
+    gotify_priority: '',
+    pushme_date: '',
+    pushme_type: '',
   };
 
   const [inputs, setInputs] = useState(originInputs);
@@ -57,6 +64,34 @@ const EditChannel = () => {
           data.bark_url = opts.url || '';
         } catch (e) {
           // keep raw other for unexpected legacy values
+        }
+      }
+      if (data.type === 'ntfy' && data.other) {
+        try {
+          const opts = JSON.parse(data.other);
+          data.ntfy_priority = opts.priority || '';
+          data.ntfy_icon = opts.icon || '';
+          data.ntfy_username = opts.username || '';
+          data.ntfy_password = opts.password || '';
+        } catch (e) {
+          // ignore invalid json
+        }
+      }
+      if (data.type === 'gotify' && data.other) {
+        try {
+          const opts = JSON.parse(data.other);
+          data.gotify_priority = opts.priority || '';
+        } catch (e) {
+          // ignore invalid json
+        }
+      }
+      if (data.type === 'pushme' && data.other) {
+        try {
+          const opts = JSON.parse(data.other);
+          data.pushme_date = opts.date || '';
+          data.pushme_type = opts.type || '';
+        } catch (e) {
+          // ignore invalid json
         }
       }
       setInputs({ ...originInputs, ...data });
@@ -94,6 +129,71 @@ const EditChannel = () => {
           if (localInputs.bark_url) barkOpts.url = localInputs.bark_url.trim();
           localInputs.other =
             Object.keys(barkOpts).length > 0 ? JSON.stringify(barkOpts) : '';
+        }
+        break;
+      case 'ntfy':
+        if (localInputs.url === '') {
+          localInputs.url = 'https://ntfy.sh';
+        } else if (localInputs.url.endsWith('/')) {
+          localInputs.url = localInputs.url.slice(0, -1);
+        }
+        if (!localInputs.account_id) {
+          showError('请填写 ntfy topic！');
+          return;
+        }
+        {
+          const ntfyOpts = {};
+          if (localInputs.ntfy_priority)
+            ntfyOpts.priority = localInputs.ntfy_priority.trim();
+          if (localInputs.ntfy_icon) ntfyOpts.icon = localInputs.ntfy_icon.trim();
+          if (localInputs.ntfy_username)
+            ntfyOpts.username = localInputs.ntfy_username.trim();
+          if (localInputs.ntfy_password)
+            ntfyOpts.password = localInputs.ntfy_password.trim();
+          localInputs.other =
+            Object.keys(ntfyOpts).length > 0 ? JSON.stringify(ntfyOpts) : '';
+        }
+        break;
+      case 'gotify':
+        if (localInputs.url === '') {
+          showError('请填写 Gotify 服务器地址！');
+          return;
+        }
+        if (localInputs.url.endsWith('/')) {
+          localInputs.url = localInputs.url.slice(0, -1);
+        }
+        if (!localInputs.secret) {
+          showError('请填写 Gotify 应用令牌！');
+          return;
+        }
+        {
+          const gotifyOpts = {};
+          if (localInputs.gotify_priority)
+            gotifyOpts.priority = localInputs.gotify_priority.trim();
+          localInputs.other =
+            Object.keys(gotifyOpts).length > 0
+              ? JSON.stringify(gotifyOpts)
+              : '';
+        }
+        break;
+      case 'pushme':
+        if (localInputs.url === '') {
+          localInputs.url = 'https://push.i-i.me/';
+        }
+        if (!localInputs.secret) {
+          showError('请填写 PushMe push_key！');
+          return;
+        }
+        {
+          const pushMeOpts = {};
+          if (localInputs.pushme_date)
+            pushMeOpts.date = localInputs.pushme_date.trim();
+          if (localInputs.pushme_type)
+            pushMeOpts.type = localInputs.pushme_type.trim();
+          localInputs.other =
+            Object.keys(pushMeOpts).length > 0
+              ? JSON.stringify(pushMeOpts)
+              : '';
         }
         break;
       case 'telegram':
@@ -497,6 +597,169 @@ const EditChannel = () => {
                 onChange={handleInputChange}
                 value={inputs.bark_level}
                 placeholder='active / timeSensitive / passive，可选'
+              />
+            </Form.Group>
+          </>
+        );
+      case 'ntfy':
+        return (
+          <>
+            <Message>
+              通过{' '}
+              <a href='https://ntfy.sh' target='_blank' rel='noreferrer'>
+                ntfy
+              </a>{' '}
+              推送（可自建）。Topic 必填；Token 与用户名/密码二选一即可。优先级为
+              1-5（默认 3）。
+            </Message>
+            <Form.Group widths={2}>
+              <Form.Input
+                label='服务器地址'
+                name='url'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.url}
+                placeholder='不填则使用 https://ntfy.sh'
+              />
+              <Form.Input
+                label='Topic'
+                name='account_id'
+                onChange={handleInputChange}
+                value={inputs.account_id}
+                placeholder='在此填写订阅主题'
+              />
+            </Form.Group>
+            <Form.Group widths={2}>
+              <Form.Input
+                label='Access Token'
+                name='secret'
+                type='password'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.secret}
+                placeholder='可选，Bearer Token'
+              />
+              <Form.Input
+                label='优先级'
+                name='ntfy_priority'
+                onChange={handleInputChange}
+                value={inputs.ntfy_priority}
+                placeholder='1-5，可选，默认 3'
+              />
+            </Form.Group>
+            <Form.Group widths={2}>
+              <Form.Input
+                label='用户名'
+                name='ntfy_username'
+                onChange={handleInputChange}
+                value={inputs.ntfy_username}
+                placeholder='可选，Basic Auth'
+              />
+              <Form.Input
+                label='密码'
+                name='ntfy_password'
+                type='password'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.ntfy_password}
+                placeholder='可选，Basic Auth'
+              />
+            </Form.Group>
+            <Form.Group widths='equal'>
+              <Form.Input
+                label='图标 URL'
+                name='ntfy_icon'
+                onChange={handleInputChange}
+                value={inputs.ntfy_icon}
+                placeholder='可选'
+              />
+            </Form.Group>
+          </>
+        );
+      case 'gotify':
+        return (
+          <>
+            <Message>
+              通过{' '}
+              <a href='https://gotify.net' target='_blank' rel='noreferrer'>
+                Gotify
+              </a>{' '}
+              自托管推送。填写服务器地址与应用令牌（Apps → Create
+              application）。优先级一般为 0-10，可选。
+            </Message>
+            <Form.Group widths={2}>
+              <Form.Input
+                label='服务器地址'
+                name='url'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.url}
+                placeholder='例如 https://gotify.example.com'
+              />
+              <Form.Input
+                label='应用令牌'
+                name='secret'
+                type='password'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.secret}
+                placeholder='Gotify application token'
+              />
+            </Form.Group>
+            <Form.Group widths='equal'>
+              <Form.Input
+                label='优先级'
+                name='gotify_priority'
+                onChange={handleInputChange}
+                value={inputs.gotify_priority}
+                placeholder='0-10，可选，默认 0'
+              />
+            </Form.Group>
+          </>
+        );
+      case 'pushme':
+        return (
+          <>
+            <Message>
+              通过{' '}
+              <a href='https://push.i-i.me/' target='_blank' rel='noreferrer'>
+                PushMe
+              </a>{' '}
+              推送（可自建）。Push Key 必填；自建时填写自定义 API 地址。
+            </Message>
+            <Form.Group widths={2}>
+              <Form.Input
+                label='API 地址'
+                name='url'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.url}
+                placeholder='不填则使用 https://push.i-i.me/'
+              />
+              <Form.Input
+                label='Push Key'
+                name='secret'
+                type='password'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.secret}
+                placeholder='在此填写 PushMe push_key'
+              />
+            </Form.Group>
+            <Form.Group widths={2}>
+              <Form.Input
+                label='日期'
+                name='pushme_date'
+                onChange={handleInputChange}
+                value={inputs.pushme_date}
+                placeholder='可选，如 2024-01-01'
+              />
+              <Form.Input
+                label='类型'
+                name='pushme_type'
+                onChange={handleInputChange}
+                value={inputs.pushme_type}
+                placeholder='可选，如 text'
               />
             </Form.Group>
           </>

@@ -17,6 +17,9 @@ export const CHANNEL_OPTIONS = [
   },
   { key: 'ding', text: '钉钉群机器人', value: 'ding', color: '#007fff' },
   { key: 'bark', text: 'Bark App', value: 'bark', color: '#ff3b30' },
+  { key: 'ntfy', text: 'Ntfy', value: 'ntfy', color: '#2a2a2a' },
+  { key: 'gotify', text: 'Gotify', value: 'gotify', color: '#469ad2' },
+  { key: 'pushme', text: 'PushMe', value: 'pushme', color: '#ff9500' },
   {
     key: 'client',
     text: 'WebSocket 客户端',

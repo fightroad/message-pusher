@@ -21,6 +21,9 @@ const (
 	TypeGroup             = "group"
 	TypeLarkApp           = "lark_app"
 	TypeCustom            = "custom"
+	TypeNtfy              = "ntfy"
+	TypeGotify            = "gotify"
+	TypePushMe            = "pushme"
 )
 
 type Channel struct {
