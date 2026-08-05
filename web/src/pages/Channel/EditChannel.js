@@ -21,6 +21,12 @@ const EditChannel = () => {
     corp_id: '', // only for corp_app
     agent_id: '', // only for corp_app
     token: '',
+    bark_group: '',
+    bark_sound: '',
+    bark_icon: '',
+    bark_level: '',
+    bark_is_archive: '',
+    bark_url: '',
   };
 
   const [inputs, setInputs] = useState(originInputs);
@@ -40,7 +46,20 @@ const EditChannel = () => {
         data.corp_id = corp_id;
         data.agent_id = agent_id;
       }
-      setInputs(data);
+      if (data.type === 'bark' && data.other) {
+        try {
+          const opts = JSON.parse(data.other);
+          data.bark_group = opts.group || '';
+          data.bark_sound = opts.sound || '';
+          data.bark_icon = opts.icon || '';
+          data.bark_level = opts.level || '';
+          data.bark_is_archive = opts.is_archive || '';
+          data.bark_url = opts.url || '';
+        } catch (e) {
+          // keep raw other for unexpected legacy values
+        }
+      }
+      setInputs({ ...originInputs, ...data });
     } else {
       showError(message);
     }
@@ -63,6 +82,18 @@ const EditChannel = () => {
       case 'bark':
         if (localInputs.url === '') {
           localInputs.url = 'https://api.day.app';
+        }
+        {
+          const barkOpts = {};
+          if (localInputs.bark_group) barkOpts.group = localInputs.bark_group.trim();
+          if (localInputs.bark_sound) barkOpts.sound = localInputs.bark_sound.trim();
+          if (localInputs.bark_icon) barkOpts.icon = localInputs.bark_icon.trim();
+          if (localInputs.bark_level) barkOpts.level = localInputs.bark_level.trim();
+          if (localInputs.bark_is_archive)
+            barkOpts.is_archive = localInputs.bark_is_archive.trim();
+          if (localInputs.bark_url) barkOpts.url = localInputs.bark_url.trim();
+          localInputs.other =
+            Object.keys(barkOpts).length > 0 ? JSON.stringify(barkOpts) : '';
         }
         break;
       case 'telegram':
@@ -398,7 +429,8 @@ const EditChannel = () => {
             <Message>
               通过 Bark 进行推送，下载 Bark 后按提示注册设备，之后会看到一个
               URL，例如 <code>https://api.day.app/wrsVSDRANDOM/Body Text</code>
-              ，其中 <code>wrsVSDRANDOM</code> 就是你的推送 key。
+              ，其中 <code>wrsVSDRANDOM</code> 就是你的推送 key。可选配置会随渠道保存，推送时自动带上。
+              跳转 URL 仅在消息未指定自定义链接时生效（系统自动生成的详情页链接会被覆盖）。
             </Message>
             <Form.Group widths={2}>
               <Form.Input
@@ -417,6 +449,54 @@ const EditChannel = () => {
                 autoComplete='new-password'
                 value={inputs.secret}
                 placeholder='在此填写 Bark 推送 key'
+              />
+            </Form.Group>
+            <Form.Group widths={2}>
+              <Form.Input
+                label='分组'
+                name='bark_group'
+                onChange={handleInputChange}
+                value={inputs.bark_group}
+                placeholder='推送分组，可选'
+              />
+              <Form.Input
+                label='存档'
+                name='bark_is_archive'
+                onChange={handleInputChange}
+                value={inputs.bark_is_archive}
+                placeholder='1（存档）或 0（不存档），可选'
+              />
+            </Form.Group>
+            <Form.Group widths={2}>
+              <Form.Input
+                label='推送图标'
+                name='bark_icon'
+                onChange={handleInputChange}
+                value={inputs.bark_icon}
+                placeholder='推送图标 URL，可选'
+              />
+              <Form.Input
+                label='推送声音'
+                name='bark_sound'
+                onChange={handleInputChange}
+                value={inputs.bark_sound}
+                placeholder='推送铃声，可选'
+              />
+            </Form.Group>
+            <Form.Group widths={2}>
+              <Form.Input
+                label='跳转 URL'
+                name='bark_url'
+                onChange={handleInputChange}
+                value={inputs.bark_url}
+                placeholder='点击推送跳转的 URL，可选'
+              />
+              <Form.Input
+                label='推送时效'
+                name='bark_level'
+                onChange={handleInputChange}
+                value={inputs.bark_level}
+                placeholder='active / timeSensitive / passive，可选'
               />
             </Form.Group>
           </>
