@@ -230,6 +230,11 @@ const EditChannel = () => {
           localInputs.other = localInputs.other.trim();
         }
         break;
+      case 'discord':
+        if (localInputs.other) {
+          localInputs.other = localInputs.other.trim();
+        }
+        break;
       case 'one_bot':
         if (localInputs.url.endsWith('/')) {
           localInputs.url = localInputs.url.slice(0, -1);
@@ -896,9 +901,10 @@ const EditChannel = () => {
           <>
             <Message>
               通过 Discord 群机器人进行推送，配置流程：选择一个 channel -&gt; 设置
-              -&gt; 整合 -&gt; 创建 Webhook -&gt; 点击复制 Webhook URL
+              -&gt; 整合 -&gt; 创建 Webhook -&gt; 点击复制 Webhook URL。
+              国内服务器通常需要填写代理才能访问 Discord。
             </Message>
-            <Form.Group widths='equal'>
+            <Form.Group widths={2}>
               <Form.Input
                 label='Webhook 地址'
                 name='url'
@@ -906,6 +912,14 @@ const EditChannel = () => {
                 autoComplete='new-password'
                 value={inputs.url}
                 placeholder='在此填写 Discord 提供的 Webhook 地址'
+              />
+              <Form.Input
+                label='代理地址'
+                name='other'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.other}
+                placeholder='可选，如 http://127.0.0.1:7890 或 socks5://127.0.0.1:1080'
               />
             </Form.Group>
           </>

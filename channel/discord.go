@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"message-pusher/model"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type discordMessageRequest struct {
@@ -39,22 +41,40 @@ func SendDiscordMessage(message *model.Message, user *model.User, channel_ *mode
 	if err != nil {
 		return err
 	}
-	resp, err := http.Post(channel_.URL, "application/json", bytes.NewBuffer(jsonData))
+	client, err := NewHTTPClient(strings.TrimSpace(channel_.Other), 30*time.Second)
 	if err != nil {
 		return err
 	}
+	resp, err := client.Post(channel_.URL, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNoContent {
 		return nil
 	}
-	var res discordMessageResponse
-	err = json.NewDecoder(resp.Body).Decode(&res)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		return err
+	}
+	var res discordMessageResponse
+	if err := json.Unmarshal(body, &res); err != nil {
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			msg := strings.TrimSpace(string(body))
+			if msg == "" {
+				msg = resp.Status
+			}
+			return errors.New(msg)
+		}
 		return err
 	}
 	if res.Code != 0 {
 		return errors.New(res.Message)
 	}
-	if resp.StatusCode == http.StatusBadRequest {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		if res.Message != "" {
+			return errors.New(res.Message)
+		}
 		return errors.New(resp.Status)
 	}
 	return nil
