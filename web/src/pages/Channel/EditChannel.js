@@ -36,6 +36,7 @@ const EditChannel = () => {
     pushme_type: '',
     corp_client_type: 'app',
     corp_proxy: '',
+    custom_headers: '',
   };
 
   const [inputs, setInputs] = useState(originInputs);
@@ -105,6 +106,27 @@ const EditChannel = () => {
           data.pushme_type = opts.type || '';
         } catch (e) {
           // ignore invalid json
+        }
+      }
+      if (data.type === 'custom' && data.other) {
+        data.custom_headers = '';
+        try {
+          const opts = JSON.parse(data.other);
+          if (
+            opts &&
+            typeof opts === 'object' &&
+            Object.prototype.hasOwnProperty.call(opts, 'headers') &&
+            Object.prototype.hasOwnProperty.call(opts, 'body') &&
+            typeof opts.body === 'string'
+          ) {
+            data.custom_headers =
+              opts.headers && Object.keys(opts.headers).length > 0
+                ? JSON.stringify(opts.headers, null, 2)
+                : '';
+            data.other = opts.body;
+          }
+        } catch (e) {
+          // keep raw body template
         }
       }
       setInputs({ ...originInputs, ...data });
@@ -262,8 +284,32 @@ const EditChannel = () => {
         try {
           JSON.parse(localInputs.other);
         } catch (e) {
-          showError('JSON 格式错误：' + e.message);
+          showError('请求体 JSON 格式错误：' + e.message);
           return;
+        }
+        {
+          const headersText = (localInputs.custom_headers || '').trim();
+          if (headersText) {
+            let headersObj;
+            try {
+              headersObj = JSON.parse(headersText);
+            } catch (e) {
+              showError('请求头 JSON 格式错误：' + e.message);
+              return;
+            }
+            if (
+              !headersObj ||
+              typeof headersObj !== 'object' ||
+              Array.isArray(headersObj)
+            ) {
+              showError('请求头必须是 JSON 对象，例如 {"Authorization":"Bearer xxx"}');
+              return;
+            }
+            localInputs.other = JSON.stringify({
+              headers: headersObj,
+              body: localInputs.other,
+            });
+          }
         }
         break;
     }
@@ -1060,7 +1106,8 @@ const EditChannel = () => {
               自定义推送，目前仅支持 POST 请求，请求体为 JSON 格式。
               <br />
               支持以下模板变量：<code>$title</code>，<code>$description</code>，
-              <code>$content</code>，<code>$url</code>，<code>$to</code>。
+              <code>$content</code>，<code>$url</code>，<code>$to</code>
+              （请求体与请求头均可使用）。
               <br />
               <a
                 href='https://iamazing.cn/page/message-pusher-common-custom-templates'
@@ -1081,6 +1128,19 @@ const EditChannel = () => {
                 autoComplete='new-password'
                 value={inputs.url}
                 placeholder='在此填写完整的请求地址，必须使用 HTTPS 协议'
+              />
+            </Form.Group>
+            <Form.Group widths='equal'>
+              <Form.TextArea
+                label='请求头'
+                placeholder='可选，JSON 对象，例如 {"Authorization":"Bearer xxx"}'
+                value={inputs.custom_headers}
+                name='custom_headers'
+                onChange={handleInputChange}
+                style={{
+                  minHeight: 100,
+                  fontFamily: 'JetBrains Mono, Consolas',
+                }}
               />
             </Form.Group>
             <Form.Group widths='equal'>
