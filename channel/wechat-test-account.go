@@ -196,10 +196,10 @@ func sendWeChatTestTemplateMessage(accessToken, openId, templateId string, messa
 		TemplateId: templateId,
 		URL:        message.URL,
 	}
-	values.Data.Text.Value = message.Description
-	values.Data.Title.Value = message.Title
-	values.Data.Description.Value = message.Description
-	values.Data.Content.Value = message.Content
+	values.Data.Text.Value = common.StripHTMLTags(message.Description)
+	values.Data.Title.Value = common.StripHTMLTags(message.Title)
+	values.Data.Description.Value = common.StripHTMLTags(message.Description)
+	values.Data.Content.Value = common.StripHTMLTags(message.Content)
 	jsonData, err := json.Marshal(values)
 	if err != nil {
 		return err

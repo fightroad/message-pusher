@@ -25,7 +25,7 @@ func SendEmailMessage(message *model.Message, user *model.User, channel_ *model.
 	} else {
 		content = fmt.Sprintf("%s\n\n%s", message.Description, message.Content)
 	}
-	if message.RenderMode == "raw" || isHTMLContent(message.Content) {
+	if message.RenderMode == "raw" || common.IsHTMLContent(message.Content) {
 		message.HTMLContent = message.Content
 	} else {
 		var err error
@@ -36,9 +36,4 @@ func SendEmailMessage(message *model.Message, user *model.User, channel_ *model.
 	}
 	user.Email = strings.ReplaceAll(user.Email, "|", ";")
 	return common.SendEmail(subject, user.Email, message.HTMLContent)
-}
-
-func isHTMLContent(s string) bool {
-	t := strings.TrimSpace(s)
-	return t != "" && t[0] == '<'
 }

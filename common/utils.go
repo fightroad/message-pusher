@@ -3,17 +3,20 @@ package common
 import (
 	"bytes"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/extension"
-	"html/template"
+	"html"
 	"log"
 	"net"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"html/template"
 )
 
 func OpenBrowser(url string) {
@@ -107,13 +110,13 @@ func Seconds2Time(num int) (time string) {
 }
 
 func Interface2String(inter interface{}) string {
-	switch inter.(type) {
+	switch v := inter.(type) {
 	case string:
-		return inter.(string)
+		return v
 	case int:
-		return fmt.Sprintf("%d", inter.(int))
+		return fmt.Sprintf("%d", v)
 	case float64:
-		return fmt.Sprintf("%f", inter.(float64))
+		return fmt.Sprintf("%f", v)
 	}
 	return "Not Implemented"
 }
@@ -161,6 +164,21 @@ func Markdown2HTML(markdown string) (HTML string, err error) {
 	}
 	HTML = buf.String()
 	return
+}
+
+func IsHTMLContent(s string) bool {
+	t := strings.TrimSpace(s)
+	return t != "" && t[0] == '<'
+}
+
+var htmlTagPattern = regexp.MustCompile(`(?s)<[^>]*>`)
+
+// StripHTMLTags removes HTML tags for plain-text channels (e.g. WeChat templates).
+func StripHTMLTags(s string) string {
+	if s == "" {
+		return ""
+	}
+	return strings.TrimSpace(html.UnescapeString(htmlTagPattern.ReplaceAllString(s, "")))
 }
 
 func GetTimestamp() int64 {

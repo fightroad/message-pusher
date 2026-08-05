@@ -273,7 +273,9 @@ func RenderMessage(c *gin.Context) {
 		c.Status(http.StatusNotFound)
 		return
 	}
-	if message.RenderMode != "raw" {
+	if message.RenderMode == "raw" || common.IsHTMLContent(message.Content) {
+		message.HTMLContent = message.Content
+	} else {
 		if message.Description != "" {
 			message.Description, err = common.Markdown2HTML(message.Description)
 			if err != nil {
