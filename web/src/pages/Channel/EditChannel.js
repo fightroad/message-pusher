@@ -181,6 +181,11 @@ const EditChannel = () => {
               描述：{' {{'}description.DATA{'}}'}
               <br />
               内容：{' {{'}content.DATA{'}}'}
+              <br />
+              用户 Open ID 支持单个、多个（用{' '}
+              <code>|</code> 分隔）或 <code>@all</code>
+              （推送给所有已关注用户）。推送参数 <code>to</code>{' '}
+              同样支持上述写法。
             </Message>
             <Form.Group widths={3}>
               <Form.Input
@@ -216,7 +221,7 @@ const EditChannel = () => {
                 onChange={handleInputChange}
                 autoComplete='new-password'
                 value={inputs.account_id}
-                placeholder='扫描测试号二维码 -> 用户列表 -> 微信号'
+                placeholder='单个 OpenID，或多个用 | 分隔，或填 @all'
               />
             </Form.Group>
           </>
