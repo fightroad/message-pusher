@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+const defaultWeChatCorpAPIHost = "https://qyapi.weixin.qq.com"
+
 type wechatCorpAccountResponse struct {
 	ErrorCode    int    `json:"errcode"`
 	ErrorMessage string `json:"errmsg"`
@@ -19,15 +21,22 @@ type wechatCorpAccountResponse struct {
 	ExpiresIn    int    `json:"expires_in"`
 }
 
+type corpAppOptions struct {
+	ClientType string `json:"client_type"`
+	Proxy      string `json:"proxy"`
+}
+
 type WeChatCorpAccountTokenStoreItem struct {
 	CorpId      string
 	AgentSecret string
 	AgentId     string
+	ApiHost     string
+	Proxy       string
 	AccessToken string
 }
 
 func (i *WeChatCorpAccountTokenStoreItem) Key() string {
-	return i.CorpId + i.AgentId + i.AgentSecret
+	return i.CorpId + i.AgentId + i.AgentSecret + "|" + i.ApiHost + "|" + i.Proxy
 }
 
 func (i *WeChatCorpAccountTokenStoreItem) IsShared() bool {
@@ -46,13 +55,39 @@ func (i *WeChatCorpAccountTokenStoreItem) Token() string {
 	return i.AccessToken
 }
 
+func normalizeWeChatCorpAPIHost(raw string) string {
+	host := strings.TrimRight(strings.TrimSpace(raw), "/")
+	if host == "" {
+		return defaultWeChatCorpAPIHost
+	}
+	return host
+}
+
+func parseCorpAppOptions(raw string) corpAppOptions {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return corpAppOptions{ClientType: "app"}
+	}
+	var opts corpAppOptions
+	if err := json.Unmarshal([]byte(raw), &opts); err != nil {
+		return corpAppOptions{ClientType: "app"}
+	}
+	if opts.ClientType == "" {
+		opts.ClientType = "app"
+	}
+	return opts
+}
+
 func (i *WeChatCorpAccountTokenStoreItem) Refresh() {
 	// https://work.weixin.qq.com/api/doc/90000/90135/91039
-	client := http.Client{
-		Timeout: 5 * time.Second,
+	client, err := NewHTTPClient(i.Proxy, 15*time.Second)
+	if err != nil {
+		common.SysError("failed to create wechat corp http client: " + err.Error())
+		return
 	}
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s",
-		i.CorpId, i.AgentSecret), nil)
+	apiHost := normalizeWeChatCorpAPIHost(i.ApiHost)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/cgi-bin/gettoken?corpid=%s&corpsecret=%s",
+		apiHost, i.CorpId, i.AgentSecret), nil)
 	if err != nil {
 		common.SysError(err.Error())
 		return
@@ -113,8 +148,10 @@ func SendWeChatCorpMessage(message *model.Message, user *model.User, channel_ *m
 	if err != nil {
 		return err
 	}
+	opts := parseCorpAppOptions(channel_.Other)
+	apiHost := normalizeWeChatCorpAPIHost(channel_.URL)
 	userId := channel_.AccountId
-	clientType := channel_.Other
+	clientType := opts.ClientType
 	agentSecret := channel_.Secret
 	messageRequest := wechatCorpMessageRequest{
 		ToUser:  userId,
@@ -154,13 +191,24 @@ func SendWeChatCorpMessage(message *model.Message, user *model.User, channel_ *m
 	if err != nil {
 		return err
 	}
-	key := fmt.Sprintf("%s%s%s", corpId, agentId, agentSecret)
-	accessToken := TokenStoreGetToken(key)
-	resp, err := http.Post(fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=%s", accessToken), "application/json",
+	item := &WeChatCorpAccountTokenStoreItem{
+		CorpId:      corpId,
+		AgentId:     agentId,
+		AgentSecret: agentSecret,
+		ApiHost:     apiHost,
+		Proxy:       strings.TrimSpace(opts.Proxy),
+	}
+	accessToken := TokenStoreGetToken(item.Key())
+	client, err := NewHTTPClient(item.Proxy, 15*time.Second)
+	if err != nil {
+		return err
+	}
+	resp, err := client.Post(fmt.Sprintf("%s/cgi-bin/message/send?access_token=%s", apiHost, accessToken), "application/json",
 		bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 	var res wechatCorpMessageResponse
 	err = json.NewDecoder(resp.Body).Decode(&res)
 	if err != nil {

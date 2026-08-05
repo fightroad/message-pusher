@@ -7,13 +7,10 @@ import (
 	"fmt"
 	"message-pusher/model"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
-
-	"golang.org/x/net/proxy"
 )
 
 var TelegramMaxMessageLength = 4096
@@ -52,55 +49,7 @@ type telegramGetUpdatesResponse struct {
 }
 
 func getTelegramHTTPClient(proxyAddr string) (*http.Client, error) {
-	const clientTimeout = 30 * time.Second
-	if proxyAddr == "" {
-		return &http.Client{Timeout: clientTimeout}, nil
-	}
-	proxyURL, err := url.Parse(proxyAddr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid proxy url: %w", err)
-	}
-	if proxyURL.Scheme == "" || proxyURL.Host == "" {
-		return nil, fmt.Errorf("invalid proxy url: must be like http://user:pass@host:port or socks5://host:port")
-	}
-	switch proxyURL.Scheme {
-	case "http", "https":
-		return &http.Client{
-			Timeout: clientTimeout,
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyURL),
-			},
-		}, nil
-	case "socks5", "socks5h":
-		var auth *proxy.Auth
-		if proxyURL.User != nil {
-			password, _ := proxyURL.User.Password()
-			auth = &proxy.Auth{
-				User:     proxyURL.User.Username(),
-				Password: password,
-			}
-		}
-		dialer, err := proxy.SOCKS5("tcp", proxyURL.Host, auth, proxy.Direct)
-		if err != nil {
-			return nil, err
-		}
-		if contextDialer, ok := dialer.(proxy.ContextDialer); ok {
-			return &http.Client{
-				Timeout: clientTimeout,
-				Transport: &http.Transport{
-					DialContext: contextDialer.DialContext,
-				},
-			}, nil
-		}
-		return &http.Client{
-			Timeout: clientTimeout,
-			Transport: &http.Transport{
-				Dial: dialer.Dial,
-			},
-		}, nil
-	default:
-		return nil, fmt.Errorf("unsupported proxy scheme: %s", proxyURL.Scheme)
-	}
+	return NewHTTPClient(proxyAddr, 30*time.Second)
 }
 
 func resolveTelegramAPIBase(apiBase string) string {

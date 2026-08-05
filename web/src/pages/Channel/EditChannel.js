@@ -34,6 +34,8 @@ const EditChannel = () => {
     gotify_priority: '',
     pushme_date: '',
     pushme_type: '',
+    corp_client_type: 'app',
+    corp_proxy: '',
   };
 
   const [inputs, setInputs] = useState(originInputs);
@@ -52,6 +54,17 @@ const EditChannel = () => {
         const [corp_id, agent_id] = data.app_id.split('|');
         data.corp_id = corp_id;
         data.agent_id = agent_id;
+        data.corp_client_type = 'app';
+        data.corp_proxy = '';
+        if (data.other) {
+          try {
+            const opts = JSON.parse(data.other);
+            data.corp_client_type = opts.client_type || 'app';
+            data.corp_proxy = opts.proxy || '';
+          } catch (e) {
+            // keep defaults
+          }
+        }
       }
       if (data.type === 'bark' && data.other) {
         try {
@@ -113,6 +126,17 @@ const EditChannel = () => {
     switch (inputs.type) {
       case 'corp_app':
         localInputs.app_id = `${inputs.corp_id}|${inputs.agent_id}`;
+        {
+          const corpOpts = {
+            client_type: localInputs.corp_client_type || 'app',
+          };
+          if (localInputs.corp_proxy)
+            corpOpts.proxy = localInputs.corp_proxy.trim();
+          localInputs.other = JSON.stringify(corpOpts);
+          if (localInputs.url) {
+            localInputs.url = localInputs.url.replace(/\/+$/, '');
+          }
+        }
         break;
       case 'bark':
         if (localInputs.url === '') {
@@ -371,13 +395,9 @@ const EditChannel = () => {
               。
               <br />
               <br />
-              注意，企业微信要求配置可信 IP，步骤：应用管理 -&gt; 自建 -&gt; 创建应用
-              -&gt; 应用设置页面下拉中找到「企业可信 IP」，点击配置 -&gt; 设置可信域名
-              -&gt; 在「可调用
-              JS-SDK、跳转小程序的可信域名」下面填写一个域名，然后点击「申请校验域名」，根据提示完成校验
-              -&gt; 之后填写服务器 IP 地址（此 IP
-              地址是消息推送服务所部署在的服务器的 IP
-              地址，未必是上面校验域名中记录的 IP 地址）。
+              注意，企业微信要求配置可信 IP。若服务在内网、出口 IP
+              不便加白，可填写代理地址（仅该渠道走代理），或自定义 API
+              地址指向已加白的反向代理 / 专有云入口。
             </Message>
             <Form.Group widths={3}>
               <Form.Input
@@ -417,7 +437,7 @@ const EditChannel = () => {
               />
               <Form.Select
                 label='微信企业号客户端类型'
-                name='other'
+                name='corp_client_type'
                 options={[
                   {
                     key: 'plugin',
@@ -426,8 +446,26 @@ const EditChannel = () => {
                   },
                   { key: 'app', text: '企业微信 APP', value: 'app' },
                 ]}
-                value={inputs.other}
+                value={inputs.corp_client_type}
                 onChange={handleInputChange}
+              />
+              <Form.Input
+                label='自定义 API 地址'
+                name='url'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.url}
+                placeholder='可选，默认 https://qyapi.weixin.qq.com'
+              />
+            </Form.Group>
+            <Form.Group widths='equal'>
+              <Form.Input
+                label='代理地址'
+                name='corp_proxy'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.corp_proxy}
+                placeholder='可选，如 http://127.0.0.1:7890 或 socks5://127.0.0.1:1080'
               />
             </Form.Group>
           </>

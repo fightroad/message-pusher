@@ -3,6 +3,7 @@ package channel
 import (
 	"message-pusher/common"
 	"message-pusher/model"
+	"strings"
 	"sync"
 	"time"
 )
@@ -37,10 +38,13 @@ func channel2item(channel_ *model.Channel) TokenStoreItem {
 			common.SysError(err.Error())
 			return nil
 		}
+		opts := parseCorpAppOptions(channel_.Other)
 		item := &WeChatCorpAccountTokenStoreItem{
 			CorpId:      corpId,
 			AgentSecret: channel_.Secret,
 			AgentId:     agentId,
+			ApiHost:     normalizeWeChatCorpAPIHost(channel_.URL),
+			Proxy:       strings.TrimSpace(opts.Proxy),
 		}
 		return item
 	case model.TypeLarkApp:
@@ -223,16 +227,19 @@ func TokenStoreUpdateChannel(newChannel *model.Channel, oldChannel *model.Channe
 			common.SysError(err.Error())
 			return
 		}
+		oldOpts := parseCorpAppOptions(oldChannel.Other)
 		oldItem := WeChatCorpAccountTokenStoreItem{
 			CorpId:      corpId,
 			AgentSecret: oldChannel.Secret,
 			AgentId:     agentId,
+			ApiHost:     normalizeWeChatCorpAPIHost(oldChannel.URL),
+			Proxy:       strings.TrimSpace(oldOpts.Proxy),
 		}
 		// Yeah, it's a deep copy.
 		newItem := oldItem
 		// This means the user updated those fields.
 		if newChannel.AppId != "" {
-			corpId, agentId, err := parseWechatCorpAccountAppId(oldChannel.AppId)
+			corpId, agentId, err := parseWechatCorpAccountAppId(newChannel.AppId)
 			if err != nil {
 				common.SysError(err.Error())
 				return
@@ -243,6 +250,9 @@ func TokenStoreUpdateChannel(newChannel *model.Channel, oldChannel *model.Channe
 		if newChannel.Secret != "" {
 			newItem.AgentSecret = newChannel.Secret
 		}
+		newItem.ApiHost = normalizeWeChatCorpAPIHost(newChannel.URL)
+		newOpts := parseCorpAppOptions(newChannel.Other)
+		newItem.Proxy = strings.TrimSpace(newOpts.Proxy)
 		if !oldItem.IsShared() {
 			TokenStoreRemoveItem(&oldItem)
 		}
