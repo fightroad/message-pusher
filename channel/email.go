@@ -25,11 +25,20 @@ func SendEmailMessage(message *model.Message, user *model.User, channel_ *model.
 	} else {
 		content = fmt.Sprintf("%s\n\n%s", message.Description, message.Content)
 	}
-	var err error
-	message.HTMLContent, err = common.Markdown2HTML(content)
-	if err != nil {
-		common.SysLog(err.Error())
+	if message.RenderMode == "raw" || isHTMLContent(message.Content) {
+		message.HTMLContent = message.Content
+	} else {
+		var err error
+		message.HTMLContent, err = common.Markdown2HTML(content)
+		if err != nil {
+			common.SysLog(err.Error())
+		}
 	}
 	user.Email = strings.ReplaceAll(user.Email, "|", ";")
 	return common.SendEmail(subject, user.Email, message.HTMLContent)
+}
+
+func isHTMLContent(s string) bool {
+	t := strings.TrimSpace(s)
+	return t != "" && t[0] == '<'
 }

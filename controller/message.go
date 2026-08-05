@@ -85,6 +85,9 @@ func PostPushMessage(c *gin.Context) {
 	if message.Token == "" {
 		message.Token = c.Query("token")
 	}
+	if message.RenderMode == "" {
+		message.RenderMode = c.Query("render_mode")
+	}
 	keepCompatible(&message)
 	pushMessageHelper(c, &message)
 }
