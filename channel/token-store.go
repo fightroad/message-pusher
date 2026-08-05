@@ -53,6 +53,12 @@ func channel2item(channel_ *model.Channel) TokenStoreItem {
 			AppSecret: channel_.Secret,
 		}
 		return item
+	case model.TypeQQBot:
+		item := &QQBotTokenStoreItem{
+			AppID:     channel_.AppId,
+			AppSecret: channel_.Secret,
+		}
+		return item
 	}
 	return nil
 }
@@ -158,7 +164,10 @@ func TokenStoreRemoveUser(user *model.User) {
 }
 
 func checkTokenStoreChannelType(channelType string) bool {
-	return channelType == model.TypeWeChatTestAccount || channelType == model.TypeWeChatCorpAccount || channelType == model.TypeLarkApp
+	return channelType == model.TypeWeChatTestAccount ||
+		channelType == model.TypeWeChatCorpAccount ||
+		channelType == model.TypeLarkApp ||
+		channelType == model.TypeQQBot
 }
 
 func TokenStoreAddChannel(channel *model.Channel) {
@@ -183,6 +192,16 @@ func TokenStoreRemoveChannel(channel *model.Channel) {
 }
 
 func TokenStoreUpdateChannel(newChannel *model.Channel, oldChannel *model.Channel) {
+	if oldChannel.Type == model.TypeQQBot || newChannel.Type == model.TypeQQBot ||
+		oldChannel.Type == model.TypeLarkApp || newChannel.Type == model.TypeLarkApp {
+		if checkTokenStoreChannelType(oldChannel.Type) {
+			TokenStoreRemoveChannel(oldChannel)
+		}
+		if checkTokenStoreChannelType(newChannel.Type) {
+			TokenStoreAddChannel(newChannel)
+		}
+		return
+	}
 	if oldChannel.Type != model.TypeWeChatTestAccount && oldChannel.Type != model.TypeWeChatCorpAccount {
 		return
 	}

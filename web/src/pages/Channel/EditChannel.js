@@ -262,6 +262,22 @@ const EditChannel = () => {
           localInputs.url = localInputs.url.slice(0, -1);
         }
         break;
+      case 'qq_bot':
+        if (localInputs.app_id === '') {
+          showError('请填写 QQ 机器人 AppID！');
+          return;
+        }
+        if (localInputs.secret === '' && !isEditing) {
+          showError('请填写 QQ 机器人 AppSecret！');
+          return;
+        }
+        if (localInputs.account_id === '') {
+          showError('请填写默认推送目标，例如 user:OPENID 或 group:OPENID！');
+          return;
+        }
+        localInputs.url = '';
+        localInputs.other = '';
+        break;
       case 'group':
         let channels = localInputs.app_id.split('|');
         let targets = localInputs.account_id.split('|');
@@ -1008,6 +1024,61 @@ const EditChannel = () => {
                 autoComplete='new-password'
                 value={inputs.account_id}
                 placeholder='在此填写默认推送目标，例如 QQ 号'
+              />
+            </Form.Group>
+          </>
+        );
+      case 'qq_bot':
+        return (
+          <>
+            <Message>
+              通过腾讯{' '}
+              <a href='https://q.qq.com' target='_blank' rel='noreferrer'>
+                QQ 开放平台
+              </a>{' '}
+              官方机器人推送消息，需先创建机器人并获取 AppID / AppSecret。
+              文档见{' '}
+              <a
+                href='https://bot.q.qq.com/wiki/'
+                target='_blank'
+                rel='noreferrer'
+              >
+                QQ 机器人官方文档
+              </a>
+              。
+              <br />
+              推送目标使用 OpenID：单聊填 <code>user:OPENID</code>
+              ，群聊填 <code>group:OPENID</code>
+              ；也可只填 OpenID（默认单聊）。OpenID
+              需从机器人收到的事件中获取。主动推送受官方频控与日配额限制。
+            </Message>
+            <Form.Group widths={2}>
+              <Form.Input
+                label='AppID'
+                name='app_id'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.app_id}
+                placeholder='在此填写 QQ 机器人 AppID'
+              />
+              <Form.Input
+                label='AppSecret'
+                name='secret'
+                type='password'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.secret}
+                placeholder='在此填写 QQ 机器人 AppSecret'
+              />
+            </Form.Group>
+            <Form.Group widths='equal'>
+              <Form.Input
+                label='默认推送目标'
+                name='account_id'
+                onChange={handleInputChange}
+                autoComplete='new-password'
+                value={inputs.account_id}
+                placeholder='例如 user:OPENID 或 group:OPENID'
               />
             </Form.Group>
           </>

@@ -43,6 +43,8 @@ func SendMessage(message *model.Message, user *model.User, channel_ *model.Chann
 		return SendGotifyMessage(message, user, channel_)
 	case model.TypePushMe:
 		return SendPushMeMessage(message, user, channel_)
+	case model.TypeQQBot:
+		return SendQQBotMessage(message, user, channel_)
 	default:
 		return errors.New("不支持的消息通道：" + channel_.Type)
 	}

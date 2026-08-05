@@ -1,4 +1,10 @@
 export const CHANNEL_OPTIONS = [
+  {
+    key: 'none',
+    text: '不推送',
+    value: 'none',
+    color: '#808080',
+  },
   { key: 'email', text: '邮件', value: 'email', color: '#4285f4' },
   { key: 'test', text: '微信测试号', value: 'test', color: '#2cbb00' },
   {
@@ -45,6 +51,12 @@ export const CHANNEL_OPTIONS = [
     color: '#76FF03',
   },
   {
+    key: 'qq_bot',
+    text: 'QQ 官方机器人',
+    value: 'qq_bot',
+    color: '#12b7f5',
+  },
+  {
     key: 'custom',
     text: '自定义消息通道',
     value: 'custom',
@@ -55,11 +67,5 @@ export const CHANNEL_OPTIONS = [
     text: '群组消息',
     value: 'group',
     color: '#FF9800',
-  },
-  {
-    key: 'none',
-    text: '不推送',
-    value: 'none',
-    color: '#808080',
   },
 ];

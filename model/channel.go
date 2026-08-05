@@ -24,6 +24,7 @@ const (
 	TypeNtfy              = "ntfy"
 	TypeGotify            = "gotify"
 	TypePushMe            = "pushme"
+	TypeQQBot             = "qq_bot"
 )
 
 type Channel struct {
@@ -72,7 +73,7 @@ func GetChannelByName(name string, userId int) (*Channel, error) {
 }
 
 func GetTokenStoreChannels() (channels []*Channel, err error) {
-	err = DB.Where("type in ?", []string{TypeWeChatCorpAccount, TypeWeChatTestAccount, TypeLarkApp}).Find(&channels).Error
+	err = DB.Where("type in ?", []string{TypeWeChatCorpAccount, TypeWeChatTestAccount, TypeLarkApp, TypeQQBot}).Find(&channels).Error
 	return channels, err
 }
 
