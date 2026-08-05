@@ -142,7 +142,8 @@ const EditWebhook = () => {
             >
               此教程
             </a>
-            。
+            。若请求体不是 JSON，可在提取规则中用路径{' '}
+            <code>raw</code> 获取原始正文。
           </Message>
           <Form.Group widths='equal'>
             <Form.TextArea

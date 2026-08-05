@@ -197,7 +197,23 @@ func TriggerWebhook(c *gin.Context) {
 		})
 		return
 	}
-	reqText := string(jsonData)
+	var reqText string
+	if gjson.ValidBytes(jsonData) {
+		reqText = string(jsonData)
+	} else {
+		// Non-JSON body (plain text, XML, etc.): expose as {"raw": "..."} for extract rules.
+		wrapped, err := json.Marshal(struct {
+			Raw string `json:"raw"`
+		}{Raw: string(jsonData)})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": "数据包装失败",
+			})
+			return
+		}
+		reqText = string(wrapped)
+	}
 	link := c.Param("link")
 	webhook, err := model.GetWebhookByLink(link)
 	if err != nil {
