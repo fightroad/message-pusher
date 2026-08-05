@@ -17,37 +17,31 @@ export function isRoot() {
 }
 
 export async function copy(text) {
-  let okay = true;
   try {
-    if (navigator.clipboard){
+    if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(text);
-    } else {
-      var textarea = document.createElement("textarea");
-
-      textarea.value = text;
-
-      textarea.style.opacity = 0;
-      textarea.style.position = "absolute";
-      textarea.style.left = "-9999px";
-
-      document.body.appendChild(textarea);
-      
-      var range = document.createRange();
-      range.selectNode(textarea);
-      window.getSelection().removeAllRanges();
-      window.getSelection().addRange(range);
-      
-      document.execCommand("copy");
-      
-      document.body.removeChild(textarea);
-      window.getSelection().removeAllRanges();
+      return true;
     }
-  }
-   catch (e) {
-    okay = false;
+  } catch (e) {
     console.error(e);
   }
-  return okay;
+  try {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    return ok;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
 }
 
 export function isMobile() {
