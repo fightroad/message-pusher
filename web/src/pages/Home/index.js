@@ -52,7 +52,7 @@ const Home = () => {
                       <p>名称：{statusState?.status?.system_name}</p>
                       <p>版本：{statusState?.status?.version}</p>
                       <p>
-                        源码：
+                        仓库：
                         <a
                           href='https://github.com/fightroad/message-pusher'
                           target='_blank'
