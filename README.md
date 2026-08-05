@@ -195,8 +195,8 @@ proxy_send_timeout 300s;
    + 将上面的 `<domain>` 以及 `<username>` 替换为真实值，例如：`https://push.mydomain.cn/push/admin`
 2. `GET` 请求方式：`https://<domain>/push/<username>?title=<标题>&description=<描述>&content=<Markdown 文本>&channel=<推送方式>&token=<推送 token>`
    1. `title`：选填，受限于具体的消息推送方式，其可能被忽略。
-   2. `description`：必填，可以替换为 `desp`。
-   3. `content`：选填，受限于具体的消息推送方式，Markdown 语法的支持有所区别。
+   2. `description`：必填（短描述 / 纯文本内容）；未传时可使用兼容字段 `short`。
+   3. `content`：选填，受限于具体的消息推送方式，Markdown 语法的支持有所区别；未传时可使用兼容字段 `desp`（Server 酱风格，对应正文而非描述）。
    4. `channel`：选填，如果不填则系统使用你在后台设置的默认推送通道。注意，此处填的是消息通道的名称，而非类型。可选的推送通道类型有：
       1. `email`：通过发送邮件的方式进行推送（使用 `title` 或 `description` 字段设置邮件主题，使用 `content` 字段设置正文，支持完整的 Markdown 语法）。
       2. `test`：通过微信测试号进行推送（使用 `description` 字段设置模板消息内容，不支持 Markdown）。
@@ -273,7 +273,7 @@ function send_message_with_json {
   # POST JSON
   curl -s -X POST "$MESSAGE_PUSHER_SERVER/push/$MESSAGE_PUSHER_USERNAME" \
     -H 'Content-Type: application/json' \
-    -d '{"title":"'"$1"'","desp":"'"$2"'", "content":"'"$3"'", "token":"'"$MESSAGE_PUSHER_TOKEN"'"}' \
+    -d '{"title":"'"$1"'","description":"'"$2"'","content":"'"$3"'","token":"'"$MESSAGE_PUSHER_TOKEN"'"}' \
     >/dev/null
 }
 
@@ -596,7 +596,7 @@ async function send_message(title, description, content) {
   try {
     const postData = querystring.stringify({
       title: title,
-      desp: description,
+      description: description,
       content: content,
       token: MESSAGE_PUSHER_TOKEN,
     })
