@@ -452,6 +452,88 @@ func main() {
 </details>
 
 <details>
+<summary><strong>Java 示例 </strong></summary>
+<div>
+
+```java
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class MessagePusher {
+    static final String SERVER = "https://push.justsong.cn";
+    static final String USERNAME = "test";
+    static final String TOKEN = "666";
+
+    // POST JSON（需 Java 11+）
+    public static String sendMessage(String title, String description, String content) throws Exception {
+        String body = String.format(
+                "{\"title\":%s,\"description\":%s,\"content\":%s,\"token\":%s}",
+                toJsonString(title),
+                toJsonString(description),
+                toJsonString(content),
+                toJsonString(TOKEN)
+        );
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(SERVER + "/push/" + USERNAME))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
+                .build();
+        HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+    // POST Form
+    public static String sendMessageWithForm(String title, String description, String content) throws Exception {
+        String body = Map.of(
+                        "title", title,
+                        "description", description,
+                        "content", content,
+                        "token", TOKEN
+                ).entrySet().stream()
+                .map(e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8)
+                        + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
+                .collect(Collectors.joining("&"));
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(SERVER + "/push/" + USERNAME))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
+                .build();
+        HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+    private static String toJsonString(String value) {
+        if (value == null) {
+            return "null";
+        }
+        return "\"" + value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t")
+                + "\"";
+    }
+
+    public static void main(String[] args) throws Exception {
+        String result = sendMessage("标题", "描述", "**Markdown 内容**");
+        System.out.println(result);
+    }
+}
+```
+
+</div>
+</details>
+
+<details>
 <summary><strong>C# 示例 </strong></summary>
 <div>
 
