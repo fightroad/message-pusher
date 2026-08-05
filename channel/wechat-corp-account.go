@@ -131,7 +131,10 @@ func SendWeChatCorpMessage(message *model.Message, user *model.User, channel_ *m
 			messageRequest.MessageType = "textcard"
 			messageRequest.TextCard.Title = message.Title
 			messageRequest.TextCard.Description = message.Description
-			messageRequest.TextCard.URL = common.ServerAddress
+			messageRequest.TextCard.URL = message.URL
+			if messageRequest.TextCard.URL == "" {
+				messageRequest.TextCard.URL = common.ServerAddress
+			}
 		}
 	} else {
 		if clientType == "plugin" {
@@ -139,6 +142,9 @@ func SendWeChatCorpMessage(message *model.Message, user *model.User, channel_ *m
 			messageRequest.TextCard.Title = message.Title
 			messageRequest.TextCard.Description = message.Description
 			messageRequest.TextCard.URL = message.URL
+			if messageRequest.TextCard.URL == "" {
+				messageRequest.TextCard.URL = common.ServerAddress
+			}
 		} else {
 			messageRequest.MessageType = "markdown"
 			messageRequest.Markdown.Content = message.Content
