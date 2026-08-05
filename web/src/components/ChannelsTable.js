@@ -81,14 +81,21 @@ const ChannelsTable = () => {
     if (success) {
       showSuccess('操作成功完成！');
       let channel = res.data.data;
-      let newChannels = [...channels];
-      let realIdx = (activePage - 1) * ITEMS_PER_PAGE + idx;
       if (action === 'delete') {
-        newChannels[realIdx].deleted = true;
+        const newChannels = channels.filter((c) => c.id !== id);
+        setChannels(newChannels);
+        if (
+          activePage > 1 &&
+          (activePage - 1) * ITEMS_PER_PAGE >= newChannels.length
+        ) {
+          setActivePage(activePage - 1);
+        }
       } else {
+        let newChannels = [...channels];
+        let realIdx = (activePage - 1) * ITEMS_PER_PAGE + idx;
         newChannels[realIdx].status = channel.status;
+        setChannels(newChannels);
       }
-      setChannels(newChannels);
     } else {
       showError(message);
     }
@@ -237,7 +244,6 @@ const ChannelsTable = () => {
               activePage * ITEMS_PER_PAGE
             )
             .map((channel, idx) => {
-              if (channel.deleted) return <></>;
               return (
                 <Table.Row key={channel.id}>
                   <Table.Cell>{channel.id}</Table.Cell>

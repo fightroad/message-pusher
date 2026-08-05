@@ -170,17 +170,21 @@ const MessagesTable = () => {
     }
   };
 
-  const deleteMessage = async (id, idx) => {
+  const deleteMessage = async (id) => {
     setOperating({ id, action: 'delete' });
     try {
       const res = await API.delete(`/api/message/${id}`);
       const { success, message } = res.data;
       if (success) {
         showSuccess('操作成功完成！');
-        let newMessages = [...messages];
-        let realIdx = (activePage - 1) * ITEMS_PER_PAGE + idx;
-        newMessages[realIdx].deleted = true;
+        const newMessages = messages.filter((m) => m.id !== id);
         setMessages(newMessages);
+        if (
+          activePage > 1 &&
+          (activePage - 1) * ITEMS_PER_PAGE >= newMessages.length
+        ) {
+          setActivePage(activePage - 1);
+        }
       } else {
         showError(message);
       }
@@ -300,7 +304,6 @@ const MessagesTable = () => {
               activePage * ITEMS_PER_PAGE
             )
             .map((message, idx) => {
-              if (message.deleted) return <></>;
               return (
                 <Table.Row key={message.id}>
                   <Table.Cell>{'#' + message.id}</Table.Cell>
@@ -358,7 +361,7 @@ const MessagesTable = () => {
                           negative
                           loading={isOperating(message.id, 'delete')}
                           onClick={() => {
-                            deleteMessage(message.id, idx).then();
+                            deleteMessage(message.id).then();
                           }}
                         >
                           删除消息 #{message.id}

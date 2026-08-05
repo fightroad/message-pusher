@@ -81,14 +81,21 @@ const WebhooksTable = () => {
     if (success) {
       showSuccess('操作成功完成！');
       let webhook = res.data.data;
-      let newWebhooks = [...webhooks];
-      let realIdx = (activePage - 1) * ITEMS_PER_PAGE + idx;
       if (action === 'delete') {
-        newWebhooks[realIdx].deleted = true;
+        const newWebhooks = webhooks.filter((w) => w.id !== id);
+        setWebhooks(newWebhooks);
+        if (
+          activePage > 1 &&
+          (activePage - 1) * ITEMS_PER_PAGE >= newWebhooks.length
+        ) {
+          setActivePage(activePage - 1);
+        }
       } else {
+        let newWebhooks = [...webhooks];
+        let realIdx = (activePage - 1) * ITEMS_PER_PAGE + idx;
         newWebhooks[realIdx].status = webhook.status;
+        setWebhooks(newWebhooks);
       }
-      setWebhooks(newWebhooks);
     } else {
       showError(message);
     }
@@ -229,7 +236,6 @@ const WebhooksTable = () => {
               activePage * ITEMS_PER_PAGE
             )
             .map((webhook, idx) => {
-              if (webhook.deleted) return <></>;
               const webhookUrl = `${window.location.origin}/webhook/${webhook.link}`;
               return (
                 <Table.Row key={webhook.id}>

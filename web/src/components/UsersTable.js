@@ -91,18 +91,25 @@ const UsersTable = () => {
       if (success) {
         showSuccess('操作成功完成！');
         let user = res.data.data;
-        let newUsers = [...users];
-        let realIdx = (activePage - 1) * ITEMS_PER_PAGE + idx;
         if (action === 'delete') {
-          newUsers[realIdx].deleted = true;
+          const newUsers = users.filter((u) => u.username !== username);
+          setUsers(newUsers);
+          if (
+            activePage > 1 &&
+            (activePage - 1) * ITEMS_PER_PAGE >= newUsers.length
+          ) {
+            setActivePage(activePage - 1);
+          }
         } else {
+          let newUsers = [...users];
+          let realIdx = (activePage - 1) * ITEMS_PER_PAGE + idx;
           newUsers[realIdx].status = user.status;
           newUsers[realIdx].role = user.role;
           newUsers[realIdx].send_email_to_others = user.send_email_to_others;
           newUsers[realIdx].save_message_to_database =
             user.save_message_to_database;
+          setUsers(newUsers);
         }
-        setUsers(newUsers);
       } else {
         showError(message);
       }
@@ -233,7 +240,6 @@ const UsersTable = () => {
               activePage * ITEMS_PER_PAGE
             )
             .map((user, idx) => {
-              if (user.deleted) return <></>;
               return (
                 <Table.Row key={user.id}>
                   <Table.Cell>{user.username}</Table.Cell>
